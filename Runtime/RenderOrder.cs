@@ -12,7 +12,7 @@ namespace TSKT
         public RenderOrder(Canvas rootCanvas, Transform target)
         {
             canvas = rootCanvas;
-            UIUtil.TryGetHierarchyPosition(rootCanvas.transform, target, out hierarchyPosition);
+            TryGetHierarchyPosition(rootCanvas.transform, target, out hierarchyPosition);
         }
 
         public static bool operator >(in RenderOrder x, in RenderOrder y)
@@ -141,6 +141,27 @@ namespace TSKT
         public int CompareTo(RenderOrder other)
         {
             return Compare(this, other);
+        }
+
+        static bool TryGetHierarchyPosition(Transform root, Transform target, out double result)
+        {
+            result = 0.0;
+
+            var current = target;
+            while (current != root)
+            {
+                if (!current.parent)
+                {
+                    return false;
+                }
+                var index = current.GetSiblingIndex();
+                var count = current.parent.childCount;
+                result += index + 1;
+                result /= count + 1;
+                current = current.parent;
+            }
+
+            return true;
         }
     }
 }
