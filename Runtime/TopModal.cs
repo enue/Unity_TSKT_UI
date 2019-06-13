@@ -7,7 +7,7 @@ namespace TSKT
 {
     public class TopModal : MonoBehaviour
     {
-        public readonly struct Handler
+        public readonly struct Handler : System.IDisposable
         {
             readonly TopModal owner;
             public int Id { get; }
@@ -18,7 +18,7 @@ namespace TSKT
                 Id = topModal.nextHandlerId;
             }
 
-            public void Disable()
+            public void Dispose()
             {
                 owner.handlerIds.Remove(Id);
                 if (owner.handlerIds.Count == 0)
