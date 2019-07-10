@@ -299,7 +299,7 @@ namespace TSKT
                     var tagString = body.Substring(left, right - left + 1);
 
                     var attributes = tagString.Split('=');
-                    var head = attributes[0].Substring(1).Trim();
+                    var head = attributes[0].Substring(1).Trim(' ', '>');
                     string tagName;
                     bool closingTag;
                     if (head[0] == '/')

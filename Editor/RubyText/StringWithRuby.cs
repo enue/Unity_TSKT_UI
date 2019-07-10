@@ -232,6 +232,7 @@ namespace TSKT.Tests
         [TestCase("<a>hoge<b>fuga</ a>piyo</b>", "hogefugapiyo", "<a>hoge<b>fuga</ a>piyo</b>")]
         [TestCase("hoge>", "hoge>", "hoge>")]
         [TestCase("<hoge", "<hoge", "<hoge")]
+        [TestCase("<color=red>hoge</color>", "hoge", "<color=red>hoge</color>")]
         public void ParseTag(string originalString, string body, string taggedBody)
         {
             var value = TSKT.StringWithRuby.Parse(originalString).ParseTag();
