@@ -274,17 +274,137 @@ namespace TSKT
             return new StringWithRuby(body, rubies, joinedRubyText, t.ToArray());
         }
 
+        public StringWithRuby ParseTag()
+        {
+            var tagRanges = new List<RangeInt>();
+            var tags = new List<(string name, string value, bool closing)>();
+            {
+                var position = 0;
+                while (true)
+                {
+                    var left = body.IndexOf('<', position);
+                    if (left < 0)
+                    {
+                        break;
+                    }
+                    var right = body.IndexOf('>', left);
+                    if (right < 0)
+                    {
+                        break;
+                    }
+
+                    position = right;
+                    tagRanges.Add(new RangeInt(left, right - left + 1));
+
+                    var tagString = body.Substring(left, right - left + 1);
+
+                    var attributes = tagString.Split('=');
+                    var head = attributes[0].Substring(1).Trim();
+                    string tagName;
+                    bool closingTag;
+                    if (head[0] == '/')
+                    {
+                        tagName = head.Substring(1).Trim();
+                        closingTag = true;
+                    }
+                    else
+                    {
+                        tagName = head;
+                        closingTag = false;
+                    }
+
+                    tags.Add((
+                        tagName,
+                        value: tagString,
+                        closing: closingTag));
+                }
+            }
+
+            if (tags.Count == 0)
+            {
+                return this;
+            }
+
+            // 削除後の位置計算
+            var tagInsertPositions = new List<int>();
+            {
+                var removeLength = 0;
+                foreach (var it in tagRanges)
+                {
+                    tagInsertPositions.Add(it.start - removeLength);
+                    removeLength += it.length;
+                }
+            }
+
+            var pairTags = new List<Tag>();
+            {
+                var dict = new Dictionary<string, Stack<((string name, string value, bool closing) tag, int position)>> ();
+                var tagIndices = tags.Zip(tagInsertPositions, (t, p) => (tag: t, position: p));
+                foreach (var it in tagIndices)
+                {
+                    if (it.tag.closing)
+                    {
+                        dict.TryGetValue(it.tag.name, out var stack);
+                        var left = stack.Pop();
+
+                        pairTags.Add(new Tag(
+                            left.position,
+                            left.tag.value,
+                            it.position,
+                            it.tag.value));
+                    }
+                    else
+                    {
+                        if (!dict.TryGetValue(it.tag.name, out var stack))
+                        {
+                            stack = new Stack<((string name, string value, bool closing) tag, int position)>();
+                            dict.Add(it.tag.name, stack);
+                        }
+                        stack.Push(it);
+                    }
+                }
+
+                UnityEngine.Assertions.Assert.AreEqual(0, dict.Sum(_ => _.Value.Count), "invalid tag : " + body);
+            }
+
+            // bodyからtag文字列を削除
+            tagRanges.Reverse();
+            var result = this;
+            foreach (var range in tagRanges)
+            {
+                var left = result.Substring(0, range.start);
+                var right = result.Substring(range.end, result.body.Length - range.end);
+                result = Combine(left, right);
+            }
+
+            result = result.InsertTags(pairTags.ToArray());
+
+            return result;
+        }
+
         public string TaggedBody
         {
             get
             {
+                if (tags.Length == 0)
+                {
+                    return body;
+                }
+
+                var t = new List<(int index, string value, int subSort)>();
+                for(int i=0; i<tags.Length; ++i)
+                {
+                    var tag = tags[i];
+                    t.Add((tag.leftIndex, tag.left, subSort: -i));
+                    t.Add((tag.rightIndex, tag.right, subSort: i));
+                }
+
+                var sortedTags = t
+                    .OrderByDescending(_ => _.index)
+                    .ThenByDescending(_ => _.subSort);
+
                 var result = body;
-
-                var lefts = tags.Select(_ => (index: _.leftIndex, value: _.left));
-                var rights = tags.Select(_ => (index: _.rightIndex, value: _.right));
-                var sortedTags = lefts.Concat(rights).OrderByDescending(_ => _.index);
-
-                foreach (var (index, value) in sortedTags)
+                foreach (var (index, value, _) in sortedTags)
                 {
                     result = result.Insert(index, value);
                 }

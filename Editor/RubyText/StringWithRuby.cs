@@ -225,5 +225,19 @@ namespace TSKT.Tests
                 Assert.AreEqual("h<piyo>o<fuga>gh<piyo>o<fuga>gee", inserted.TaggedBody);
             }
         }
+        [Test]
+        [TestCase("<fuga>hoge</ fuga>", "hoge", "<fuga>hoge</ fuga>")]
+        [TestCase("<b><a>hoge</ a></b>", "hoge", "<b><a>hoge</ a></b>")]
+        [TestCase("<b><a>hoge</b></ a>", "hoge", "<a><b>hoge</b></ a>")]
+        [TestCase("<a>hoge<b>fuga</ a>piyo</b>", "hogefugapiyo", "<a>hoge<b>fuga</ a>piyo</b>")]
+        [TestCase("hoge>", "hoge>", "hoge>")]
+        [TestCase("<hoge", "<hoge", "<hoge")]
+        public void ParseTag(string originalString, string body, string taggedBody)
+        {
+            var value = TSKT.StringWithRuby.Parse(originalString).ParseTag();
+
+            Assert.AreEqual(body, value.body);
+            Assert.AreEqual(taggedBody, value.TaggedBody);
+        }
     }
 }
