@@ -106,27 +106,31 @@ namespace TSKT
 
             foreach (var ruby in stringWithRuby.rubies)
             {
+                // 幅がない文字はおそらく制御文字やタグなので撥ねる
+                var bodyCharactersForRuby = bodyCharacterPositions
+                    .Skip(ruby.bodyStringRange.start)
+                    .Take(ruby.bodyStringRange.length)
+                    .Where(_ => _.left != _.right)
+                    .ToArray();
+
                 // 改行を挟む場合はルビを分割
                 var newLine = new List<int>();
                 newLine.Add(0);
-                for (int i = 1; i < ruby.bodyStringRange.length; ++i)
+                for (int i = 1; i < bodyCharactersForRuby.Length; ++i)
                 {
-                    var index = (ruby.bodyStringRange.start + i);
-                    var prevIndex = (ruby.bodyStringRange.start + i - 1);
-                    if (bodyCharacterPositions.Count > index && bodyCharacterPositions.Count > prevIndex)
+                    var index = i;
+                    var prevIndex = i - 1;
+                    if (bodyCharactersForRuby[index].left < bodyCharactersForRuby[prevIndex].left)
                     {
-                        if (bodyCharacterPositions[index].left < bodyCharacterPositions[prevIndex].left)
-                        {
-                            newLine.Add(i);
-                        }
+                        newLine.Add(i);
                     }
                 }
                 var splitRubyLength = ruby.textLength / newLine.Count;
                 for (int i = 0; i < newLine.Count; ++i)
                 {
-                    var targetCharacterIndex = ruby.bodyStringRange.start + newLine[i];
-                    var targetCharacterCount = (i == newLine.Count - 1)
-                        ? (ruby.bodyStringRange.length - newLine[i])
+                    var characterIndex = newLine[i];
+                    var characterCount = (i == newLine.Count - 1)
+                        ? (bodyCharactersForRuby.Length - newLine[i])
                         : newLine[i + 1] - newLine[i];
 
                     int currentRubyLength;
@@ -138,31 +142,36 @@ namespace TSKT
                     {
                         currentRubyLength = splitRubyLength;
                     }
-                    var rubyIndex = ruby.textPosition + splitRubyLength * i;
-                    var currentBodyPositions = bodyCharacterPositions
-                            .Skip(targetCharacterIndex)
-                            .Take(targetCharacterCount)
-                            .ToArray();
 
-                    ModifyRubyPosition(ref list, currentBodyPositions, rubyIndex, currentRubyLength);
+                    var bodyBounds = GetBounds(bodyCharactersForRuby, characterIndex, characterCount);
+
+                    var rubyIndex = ruby.textPosition + splitRubyLength * i;
+
+                    ModifyRubyPosition(ref list, rubyIndex, currentRubyLength, bodyBounds);
                 }
             }
         }
 
-        void ModifyRubyPosition(ref List<UIVertex> targets,
-            (float left, float right, float y)[] bodyCharacterPositions,
-            int rubyIndex, int rubyLength)
+        static (float xMin, float xMax, float yMax) GetBounds((float left, float right, float y)[] characters,
+            int startIndex, int count)
         {
-            var bodyXMax = bodyCharacterPositions[0].right;
-            var bodyXMin = bodyCharacterPositions[0].left;
-            var bodyYMax = bodyCharacterPositions[0].y;
-            for(int i=1; i<bodyCharacterPositions.Length; ++i)
+            var xMax = characters[startIndex].right;
+            var xMin = characters[startIndex].left;
+            var yMax = characters[startIndex].y;
+            for (int i = 1; i < count; ++i)
             {
-                bodyXMax = Mathf.Max(bodyXMax, bodyCharacterPositions[i].right);
-                bodyXMin = Mathf.Min(bodyXMin, bodyCharacterPositions[i].left);
-                bodyYMax = Mathf.Max(bodyYMax, bodyCharacterPositions[i].y);
+                var index = startIndex + i;
+                xMax = Mathf.Max(xMax, characters[index].right);
+                xMin = Mathf.Min(xMin, characters[index].left);
+                yMax = Mathf.Max(yMax, characters[index].y);
             }
+            return (xMin, xMax, yMax);
+        }
 
+        void ModifyRubyPosition(ref List<UIVertex> rubyVertices,
+            int rubyIndex, int rubyLength,
+            (float xMin, float xMax, float yMax) bodyBounds)
+        {
             for (int i = 0; i < rubyLength; ++i)
             {
                 var t = Mathf.InverseLerp(
@@ -170,10 +179,10 @@ namespace TSKT
                     rubyLength - 1f + 0.4f,
                     i);
                 var toPosition = new Vector2(
-                    Mathf.Lerp(bodyXMin, bodyXMax, t),
-                    bodyYMax + positionY);
+                    Mathf.Lerp(bodyBounds.xMin, bodyBounds.xMax, t),
+                    bodyBounds.yMax + positionY);
 
-                var quadVertices = targets
+                var quadVertices = rubyVertices
                     .Skip((rubyIndex + i) * VertexCountPerQuad)
                     .Take(VertexCountPerQuad);
 
@@ -191,10 +200,10 @@ namespace TSKT
                 for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
                     var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    var v = targets[index];
+                    var v = rubyVertices[index];
                     v.position.x += move.x;
                     v.position.y += move.y;
-                    targets[index] = v;
+                    rubyVertices[index] = v;
                 }
             }
         }
