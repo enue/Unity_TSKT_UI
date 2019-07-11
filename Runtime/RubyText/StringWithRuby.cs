@@ -98,6 +98,58 @@ namespace TSKT
             return new StringWithRuby(left.body + right.body, rubies, left.joinedRubyText + right.joinedRubyText, newTags);
         }
 
+        public StringWithRuby Remove(int startIndex, int count)
+        {
+            var newBody = body.Remove(startIndex, count);
+
+            // ルビの移動
+            var rubyBuilders = new List<(RangeInt bodyRange, Ruby original)>();
+            foreach(var it in rubies)
+            {
+                var range = TrimRange(it.bodyStringRange,
+                    new RangeInt(startIndex, count));
+                if (range.length > 0)
+                {
+                    rubyBuilders.Add((range, it));
+                }
+            }
+
+            // タグの移動
+            var newTags = new List<Tag>();
+            foreach(var it in tags)
+            {
+                var range = TrimRange(
+                    new RangeInt(it.leftIndex, it.rightIndex - it.leftIndex),
+                    new RangeInt(startIndex, count));
+                if (range.length > 0)
+                {
+                    newTags.Add(new Tag(
+                            range.start, it.left,
+                            range.end, it.right));
+                }
+            }
+
+            // ルビの再生成
+            var newJoinedRubyText = new System.Text.StringBuilder();
+            var newRubies = new List<Ruby>();
+            foreach(var it in rubyBuilders)
+            {
+                var ruby = new Ruby(
+                    textPosition: newJoinedRubyText.Length,
+                    textLength: it.original.textLength,
+                    bodyQuadIndex: CountQuad(newBody, 0, it.bodyRange.start),
+                    bodyQuadCount: CountQuad(newBody, it.bodyRange.start, it.bodyRange.length),
+                    bodyStringRange: it.bodyRange);
+                newRubies.Add(ruby);
+                newJoinedRubyText.Append(joinedRubyText, it.original.textPosition, it.original.textLength);
+            }
+
+            return new StringWithRuby(newBody,
+                newRubies.ToArray(),
+                newJoinedRubyText.ToString(),
+                newTags.ToArray());
+        }
+
         public StringWithRuby Substring(int startIndex, int length)
         {
             // 削除部分に重なっているルビを削除
@@ -123,8 +175,7 @@ namespace TSKT
             // 頭を削除するとインデックスがずれる
             if (startIndex > 0)
             {
-                var removedBeginningBody = body.Substring(0, startIndex);
-                var removedBeginningQuad = CountQuad(removedBeginningBody);
+                var removedBeginningQuad = CountQuad(body, 0, startIndex);
 
                 newRubies = newRubies
                     .Select(_ => new Ruby(
@@ -188,7 +239,7 @@ namespace TSKT
             }
             var newBody = body.Substring(0, startIndex);
             var newRubyText = new System.Text.StringBuilder();
-            newRubyText.Append(joinedRubyText.Substring(0, newRubies.Sum(_ => _.textLength)));
+            newRubyText.Append(joinedRubyText, 0, newRubies.Sum(_ => _.textLength));
 
             // 挿入部分
             var QuadCountBeforeStartIndex = CountQuad(newBody);
@@ -216,7 +267,7 @@ namespace TSKT
                         bodyQuadIndex: it.bodyQuadIndex + valueQuadCount,
                         bodyQuadCount: it.bodyQuadCount,
                         bodyStringRange: new RangeInt(it.bodyStringRange.start + value.body.Length, it.bodyStringRange.length)));
-                    newRubyText.Append(joinedRubyText.Substring(it.textPosition, it.textLength));
+                    newRubyText.Append(joinedRubyText, it.textPosition, it.textLength);
                 }
             }
             newBody += body.Substring(startIndex, body.Length - startIndex);
@@ -372,9 +423,7 @@ namespace TSKT
             var result = this;
             foreach (var range in tagRanges)
             {
-                var left = result.Substring(0, range.start);
-                var right = result.Substring(range.end, result.body.Length - range.end);
-                result = Combine(left, right);
+                result = result.Remove(range.start, range.length);
             }
 
             result = result.InsertTags(pairTags.ToArray());
@@ -414,29 +463,44 @@ namespace TSKT
 
         public static int CountQuad(string text)
         {
+            return CountQuad(text, 0, text.Length);
+        }
+
+        public static int CountQuad(string text, int startIndex)
+        {
+            return CountQuad(text, startIndex, text.Length - startIndex);
+        }
+
+        public static int CountQuad(string text, int startIndex, int count)
+        {
             if (text == null)
             {
                 return 0;
             }
-            var result = 0;
-            foreach (var it in text)
+            if (count == 0)
             {
-                if (it == '\0')
+                return 0;
+            }
+            var result = 0;
+            for (int i = 0; i < count; ++i)
+            {
+                var c = text[i + startIndex];
+                if (c == '\0')
                 {
                     continue;
                 }
-                if (it == '\t')
+                if (c == '\t')
                 {
                     continue;
                 }
-                if (it == '\n')
+                if (c == '\n')
                 {
                     // \nがポリゴンを作るかは場合による。
                     // 基本的には作らないが、改行コードが文字列の末尾にある場合は作られるらしい。
                     // ただしこれを厳密に考えると文字列連結時にQuad数を計算するのが面倒になるので、とりあえず常に作らない扱いで数えている。
                     continue;
                 }
-                if (it == ' ')
+                if (c == ' ')
                 {
                     continue;
                 }
@@ -486,6 +550,48 @@ namespace TSKT
             }
 
             return new StringWithRuby(bodyText.ToString(), rubies.ToArray(), rubyText.ToString(), System.Array.Empty<Tag>());
+        }
+
+        static RangeInt TrimRange(RangeInt original, RangeInt removeRange)
+        {
+            if (original.end <= removeRange.start)
+            {
+                // 削除範囲より前にある
+                // 影響なし
+                return original;
+            }
+            else if (original.start < removeRange.start
+                && original.end > removeRange.start
+                && original.end <= removeRange.end)
+            {
+                // 後ろが重なっている
+                return new RangeInt(original.start, removeRange.start - original.start);
+            }
+            else if (original.start <= removeRange.start
+                && original.end >= removeRange.end)
+            {
+                // 削除部分を包含
+                return new RangeInt(original.start, original.length - removeRange.length);
+            }
+            else if (original.start >= removeRange.start
+                && original.end <= removeRange.end)
+            {
+                // 削除部分に包含
+                // 長さ0になる
+                return new RangeInt(removeRange.start, 0);
+            }
+            else if (original.start >= removeRange.start
+                && original.start <= removeRange.end
+                && original.end > removeRange.end)
+            {
+                // 前が重なっている
+                return new RangeInt(removeRange.start, original.end - removeRange.end);
+            }
+            else
+            {
+                // 削除範囲より後ろにある
+                return new RangeInt(original.start - removeRange.length, original.length);
+            }
         }
     }
 }
