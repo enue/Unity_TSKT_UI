@@ -22,7 +22,7 @@ namespace TSKT
         }
 
         [SerializeField]
-        RubyBodyText bodyText;
+        Text bodyText;
 
         [SerializeField]
         float positionY = 8f;
@@ -31,6 +31,8 @@ namespace TSKT
         bool forceRefresh;
 
         StringWithRuby stringWithRuby;
+
+        List<UICharInfo> charInfoBuffer;
 
         public void Set(StringWithRuby stringWithRuby)
         {
@@ -69,56 +71,51 @@ namespace TSKT
             {
                 return;
             }
-            if (bodyText.OriginalTextVertices == null)
+            if (bodyText.text == null)
             {
                 return;
             }
 
+            var bodyCharacterPositions = new List<(float left, float right, float y)>();
+            {
+                var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
+
+                using (var generator = new TextGenerator())
+                {
+                    generator.PopulateWithErrors(bodyText.text, settings, gameObject);
+
+                    if (charInfoBuffer == null)
+                    {
+                        charInfoBuffer = new List<UICharInfo>();
+                    }
+                    charInfoBuffer.Clear();
+
+                    var characters = charInfoBuffer;
+                    generator.GetCharacters(characters);
+                    var scale = 1f / bodyText.pixelsPerUnit;
+                    for (int i = 0; i < characters.Count; ++i)
+                    {
+                        var character = characters[i];
+                        var left = character.cursorPos.x * scale;
+                        var right = (character.cursorPos.x + character.charWidth) * scale;
+                        var y = character.cursorPos.y * scale;
+                        bodyCharacterPositions.Add((left, right, y));
+                    }
+                }
+            }
+
             foreach (var ruby in stringWithRuby.rubies)
             {
-                // 文字送り途中などでベースの文字が表示されていない場合がある。その場合ルビは非表示にする。
-                if (ruby.RequiredTargetVerticesCount > bodyText.OriginalTextVertices.Count)
-                {
-                    for (int j = 0; j < ruby.textLength; ++j)
-                    {
-                        for (int k = 0; k < VertexCountPerQuad; ++k)
-                        {
-                            var index = (ruby.textPosition + j) * VertexCountPerQuad + k;
-                            if (index < list.Count)
-                            {
-                                var vertex = list[index];
-                                vertex.color = new Color32(vertex.color.r, vertex.color.g, vertex.color.b, 0);
-                                list[index] = vertex;
-                            }
-                        }
-                    }
-                    continue;
-                }
-                // 表示処理
-                for (int j = 0; j < ruby.textLength; ++j)
-                {
-                    for (int k = 0; k < VertexCountPerQuad; ++k)
-                    {
-                        var index = (ruby.textPosition + j) * VertexCountPerQuad + k;
-                        if (index < list.Count)
-                        {
-                            var vertex = list[index];
-                            vertex.color = new Color32(vertex.color.r, vertex.color.g, vertex.color.b, byte.MaxValue);
-                            list[index] = vertex;
-                        }
-                    }
-                }
-
                 // 改行を挟む場合はルビを分割
                 var newLine = new List<int>();
                 newLine.Add(0);
-                for (int i = 1; i < ruby.bodyQuadCount; ++i)
+                for (int i = 1; i < ruby.bodyStringRange.length; ++i)
                 {
-                    var index = (ruby.bodyQuadIndex + i) * VertexCountPerQuad;
-                    var prevIndex = (ruby.bodyQuadIndex + i - 1) * VertexCountPerQuad;
-                    if (bodyText.OriginalTextVertices.Count > index && bodyText.OriginalTextVertices.Count > prevIndex)
+                    var index = (ruby.bodyStringRange.start + i);
+                    var prevIndex = (ruby.bodyStringRange.start + i - 1);
+                    if (bodyCharacterPositions.Count > index && bodyCharacterPositions.Count > prevIndex)
                     {
-                        if (bodyText.OriginalTextVertices[index].position.x < bodyText.OriginalTextVertices[prevIndex].position.x)
+                        if (bodyCharacterPositions[index].left < bodyCharacterPositions[prevIndex].left)
                         {
                             newLine.Add(i);
                         }
@@ -127,9 +124,9 @@ namespace TSKT
                 var splitRubyLength = ruby.textLength / newLine.Count;
                 for (int i = 0; i < newLine.Count; ++i)
                 {
-                    var targetQuadIndex = ruby.bodyQuadIndex + newLine[i];
-                    var targetQuadCount = (i == newLine.Count - 1)
-                        ? (ruby.bodyQuadCount - newLine[i])
+                    var targetCharacterIndex = ruby.bodyStringRange.start + newLine[i];
+                    var targetCharacterCount = (i == newLine.Count - 1)
+                        ? (ruby.bodyStringRange.length - newLine[i])
                         : newLine[i + 1] - newLine[i];
 
                     int currentRubyLength;
@@ -142,26 +139,28 @@ namespace TSKT
                         currentRubyLength = splitRubyLength;
                     }
                     var rubyIndex = ruby.textPosition + splitRubyLength * i;
-                    var bodyVertices = bodyText.OriginalTextVertices
-                            .Skip(targetQuadIndex * VertexCountPerQuad)
-                            .Take(targetQuadCount * VertexCountPerQuad)
+                    var currentBodyPositions = bodyCharacterPositions
+                            .Skip(targetCharacterIndex)
+                            .Take(targetCharacterCount)
                             .ToArray();
 
-                    ModifyRubyPosition(ref list, bodyVertices, rubyIndex, currentRubyLength);
+                    ModifyRubyPosition(ref list, currentBodyPositions, rubyIndex, currentRubyLength);
                 }
             }
         }
 
-        void ModifyRubyPosition(ref List<UIVertex> targets, UIVertex[] bodyVertices, int rubyIndex, int rubyLength)
+        void ModifyRubyPosition(ref List<UIVertex> targets,
+            (float left, float right, float y)[] bodyCharacterPositions,
+            int rubyIndex, int rubyLength)
         {
-            var bodyXMax = bodyVertices[0].position.x;
-            var bodyXMin = bodyVertices[0].position.x;
-            var bodyYMax = bodyVertices[0].position.y;
-            for(int i=1; i<bodyVertices.Length; ++i)
+            var bodyXMax = bodyCharacterPositions[0].right;
+            var bodyXMin = bodyCharacterPositions[0].left;
+            var bodyYMax = bodyCharacterPositions[0].y;
+            for(int i=1; i<bodyCharacterPositions.Length; ++i)
             {
-                bodyXMax = Mathf.Max(bodyXMax, bodyVertices[i].position.x);
-                bodyXMin = Mathf.Min(bodyXMin, bodyVertices[i].position.x);
-                bodyYMax = Mathf.Max(bodyYMax, bodyVertices[i].position.y);
+                bodyXMax = Mathf.Max(bodyXMax, bodyCharacterPositions[i].right);
+                bodyXMin = Mathf.Min(bodyXMin, bodyCharacterPositions[i].left);
+                bodyYMax = Mathf.Max(bodyYMax, bodyCharacterPositions[i].y);
             }
 
             for (int i = 0; i < rubyLength; ++i)

@@ -11,18 +11,12 @@ namespace TSKT
         {
             readonly public int textPosition;
             readonly public int textLength;
-            readonly public int bodyQuadIndex;
-            readonly public int bodyQuadCount;
             readonly public RangeInt bodyStringRange;
 
-            public int RequiredTargetVerticesCount => (bodyQuadIndex + bodyQuadCount) * RubyText.VertexCountPerQuad;
-
-            public Ruby(int textPosition, int textLength, int bodyQuadIndex, int bodyQuadCount, RangeInt bodyStringRange)
+            public Ruby(int textPosition, int textLength, RangeInt bodyStringRange)
             {
                 this.textPosition = textPosition;
                 this.textLength = textLength;
-                this.bodyQuadIndex = bodyQuadIndex;
-                this.bodyQuadCount = bodyQuadCount;
                 this.bodyStringRange = bodyStringRange;
             }
         }
@@ -59,8 +53,6 @@ namespace TSKT
 
         public static StringWithRuby Combine(StringWithRuby left, StringWithRuby right)
         {
-            var leftBodyQuadCount = CountQuad(left.body);
-
             var rubies = new Ruby[left.rubies.Length + right.rubies.Length];
 
             for (int i = 0; i < left.rubies.Length; ++i)
@@ -75,8 +67,6 @@ namespace TSKT
                 var ruby = new Ruby(
                     textPosition: rightWord.textPosition + left.joinedRubyText.Length,
                     textLength: rightWord.textLength,
-                    bodyQuadIndex: rightWord.bodyQuadIndex + leftBodyQuadCount,
-                    bodyQuadCount: rightWord.bodyQuadCount,
                     bodyStringRange: new RangeInt(rightWord.bodyStringRange.start + left.body.Length, rightWord.bodyStringRange.length));
                 rubies[dest] = ruby;
             }
@@ -137,8 +127,6 @@ namespace TSKT
                 var ruby = new Ruby(
                     textPosition: newJoinedRubyText.Length,
                     textLength: it.original.textLength,
-                    bodyQuadIndex: CountQuad(newBody, 0, it.bodyRange.start),
-                    bodyQuadCount: CountQuad(newBody, it.bodyRange.start, it.bodyRange.length),
                     bodyStringRange: it.bodyRange);
                 newRubies.Add(ruby);
                 newJoinedRubyText.Append(joinedRubyText, it.original.textPosition, it.original.textLength);
@@ -175,14 +163,10 @@ namespace TSKT
             // 頭を削除するとインデックスがずれる
             if (startIndex > 0)
             {
-                var removedBeginningQuad = CountQuad(body, 0, startIndex);
-
                 newRubies = newRubies
                     .Select(_ => new Ruby(
                         _.textPosition - rubyTextPosition,
                         _.textLength,
-                        _.bodyQuadIndex - removedBeginningQuad,
-                        _.bodyQuadCount,
                         new RangeInt(_.bodyStringRange.start - startIndex, _.bodyStringRange.length)));
 
                 newTags = newTags
@@ -212,8 +196,6 @@ namespace TSKT
                     newRubies[i - 1] = new Ruby(
                         textPosition: rubies[i].textPosition - rubies[index].textLength,
                         textLength: rubies[i].textLength,
-                        bodyQuadIndex: rubies[i].bodyQuadIndex,
-                        bodyQuadCount: rubies[i].bodyQuadCount,
                         bodyStringRange: rubies[i].bodyStringRange);
                 }
             }
@@ -225,65 +207,69 @@ namespace TSKT
 
         public StringWithRuby Insert(int startIndex, StringWithRuby value)
         {
-            // 挿入箇所にルビがまたがる場合、ルビは消す
+            var newBody = body.Insert(startIndex, value.body);
 
-            // 前半部分
-            var newRubies = new List<Ruby>();
+            // ルビ
+            var rubyBuilder = new List<(RangeInt range, Ruby ruby, string joinedText)>();
             foreach (var it in rubies)
             {
-                if (it.bodyStringRange.end > startIndex)
+                if (it.bodyStringRange.end <= startIndex)
                 {
-                    break;
+                    // 挿入部分より前
+                    rubyBuilder.Add((it.bodyStringRange, it, joinedRubyText));
                 }
-                newRubies.Add(it);
+                else if (it.bodyStringRange.start < startIndex
+                    && it.bodyStringRange.end >= startIndex)
+                {
+                    // 挿入部分をまたぐ
+                    rubyBuilder.Add((
+                        new RangeInt(it.bodyStringRange.start, it.bodyStringRange.length + value.body.Length),
+                        it,
+                        joinedRubyText));
+                }
+                else
+                {
+                    // 挿入部分より後
+                    rubyBuilder.Add((
+                        new RangeInt(it.bodyStringRange.start + value.body.Length, it.bodyStringRange.length),
+                        it,
+                        joinedRubyText));
+                }
             }
-            var newBody = body.Substring(0, startIndex);
-            var newRubyText = new System.Text.StringBuilder();
-            newRubyText.Append(joinedRubyText, 0, newRubies.Sum(_ => _.textLength));
 
             // 挿入部分
-            var QuadCountBeforeStartIndex = CountQuad(newBody);
             foreach (var it in value.rubies)
             {
-                newRubies.Add(new Ruby(
-                    textPosition: it.textPosition + newRubyText.Length,
-                    textLength: it.textLength,
-                    bodyQuadIndex: it.bodyQuadIndex + QuadCountBeforeStartIndex,
-                    bodyQuadCount: it.bodyQuadCount,
-                    bodyStringRange: new RangeInt(it.bodyStringRange.start + startIndex, it.bodyStringRange.length)));
+                rubyBuilder.Add((
+                    new RangeInt(it.bodyStringRange.start + startIndex, it.bodyStringRange.length),
+                    it,
+                    value.joinedRubyText));
             }
-            newBody += value.body;
-            newRubyText.Append(value.joinedRubyText);
 
-            // 後半部分
-            var valueQuadCount = CountQuad(value.body);
-            foreach (var it in rubies)
+            var newRubies = new List<Ruby>();
+            var newRubyText = new System.Text.StringBuilder();
+            foreach (var builder in rubyBuilder.OrderBy(_ => _.range.start))
             {
-                if (it.bodyStringRange.start >= startIndex)
-                {
-                    newRubies.Add(new Ruby(
-                        textPosition: newRubyText.Length,
-                        textLength: it.textLength,
-                        bodyQuadIndex: it.bodyQuadIndex + valueQuadCount,
-                        bodyQuadCount: it.bodyQuadCount,
-                        bodyStringRange: new RangeInt(it.bodyStringRange.start + value.body.Length, it.bodyStringRange.length)));
-                    newRubyText.Append(joinedRubyText, it.textPosition, it.textLength);
-                }
+                newRubies.Add(new Ruby(
+                    textPosition: newRubyText.Length,
+                    textLength: builder.ruby.textLength,
+                    bodyStringRange: builder.range));
+                newRubyText.Append(builder.joinedText, builder.ruby.textPosition, builder.ruby.textLength);
             }
-            newBody += body.Substring(startIndex, body.Length - startIndex);
 
             // tag
             var newTags = new List<Tag>();
             foreach (var it in tags)
             {
-                if (it.rightIndex < startIndex)
+                if (it.rightIndex <= startIndex)
                 {
                     newTags.Add(it);
                 }
-                else if (it.leftIndex > startIndex)
+                else if (it.leftIndex < startIndex
+                    && it.rightIndex >= startIndex)
                 {
                     newTags.Add(new Tag(
-                        it.leftIndex + value.body.Length,
+                        it.leftIndex,
                         it.left,
                         it.rightIndex + value.body.Length,
                         it.right));
@@ -291,7 +277,7 @@ namespace TSKT
                 else
                 {
                     newTags.Add(new Tag(
-                        it.leftIndex,
+                        it.leftIndex + value.body.Length,
                         it.left,
                         it.rightIndex + value.body.Length,
                         it.right));
@@ -325,7 +311,7 @@ namespace TSKT
             return new StringWithRuby(body, rubies, joinedRubyText, t.ToArray());
         }
 
-        public StringWithRuby ParseTag()
+        public StringWithRuby FoldTag()
         {
             var tagRanges = new List<RangeInt>();
             var tags = new List<(string name, string value, bool closing)>();
@@ -431,82 +417,36 @@ namespace TSKT
             return result;
         }
 
-        public string TaggedBody
+        public StringWithRuby UnfoldTag()
         {
-            get
+            if (tags.Length == 0)
             {
-                if (tags.Length == 0)
-                {
-                    return body;
-                }
-
-                var t = new List<(int index, string value, int subSort)>();
-                for(int i=0; i<tags.Length; ++i)
-                {
-                    var tag = tags[i];
-                    t.Add((tag.leftIndex, tag.left, subSort: -i));
-                    t.Add((tag.rightIndex, tag.right, subSort: i));
-                }
-
-                var sortedTags = t
-                    .OrderByDescending(_ => _.index)
-                    .ThenByDescending(_ => _.subSort);
-
-                var result = body;
-                foreach (var (index, value, _) in sortedTags)
-                {
-                    result = result.Insert(index, value);
-                }
-                return result;
+                return this;
             }
-        }
 
-        public static int CountQuad(string text)
-        {
-            return CountQuad(text, 0, text.Length);
-        }
-
-        public static int CountQuad(string text, int startIndex)
-        {
-            return CountQuad(text, startIndex, text.Length - startIndex);
-        }
-
-        public static int CountQuad(string text, int startIndex, int count)
-        {
-            if (text == null)
+            var t = new List<(int index, string value, int subSort)>();
+            for (int i = 0; i < tags.Length; ++i)
             {
-                return 0;
+                var tag = tags[i];
+                t.Add((tag.leftIndex, tag.left, subSort: -i));
+                t.Add((tag.rightIndex, tag.right, subSort: i));
             }
-            if (count == 0)
+
+            var sortedTags = t
+                .OrderByDescending(_ => _.index)
+                .ThenByDescending(_ => _.subSort);
+
+            var result = this;
+            foreach (var (index, value, _) in sortedTags)
             {
-                return 0;
+                var tag = Parse(value);
+                result = result.Insert(index, tag);
             }
-            var result = 0;
-            for (int i = 0; i < count; ++i)
-            {
-                var c = text[i + startIndex];
-                if (c == '\0')
-                {
-                    continue;
-                }
-                if (c == '\t')
-                {
-                    continue;
-                }
-                if (c == '\n')
-                {
-                    // \nがポリゴンを作るかは場合による。
-                    // 基本的には作らないが、改行コードが文字列の末尾にある場合は作られるらしい。
-                    // ただしこれを厳密に考えると文字列連結時にQuad数を計算するのが面倒になるので、とりあえず常に作らない扱いで数えている。
-                    continue;
-                }
-                if (c == ' ')
-                {
-                    continue;
-                }
-                ++result;
-            }
-            return result;
+
+            return new StringWithRuby(result.body,
+                result.rubies,
+                result.joinedRubyText,
+                null);
         }
 
         public static StringWithRuby Parse(string originalText)
@@ -540,8 +480,6 @@ namespace TSKT
                 var word = new Ruby(
                     textPosition: rubyText.Length,
                     textLength: ruby.Length,
-                    bodyQuadIndex: CountQuad(bodyText.ToString()),
-                    bodyQuadCount: CountQuad(body),
                     bodyStringRange: new RangeInt(bodyText.Length, body.Length));
                 rubies.Add(word);
 
