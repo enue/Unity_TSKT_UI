@@ -488,7 +488,7 @@ namespace TSKT
             var result = this;
             foreach (var (index, value, _) in sortedTags)
             {
-                var tag = Parse(value);
+                var tag = new StringWithRuby(value, null, null, null);
                 result = result.Insert(index, tag);
             }
 
