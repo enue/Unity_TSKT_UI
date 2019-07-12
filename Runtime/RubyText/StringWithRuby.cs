@@ -419,8 +419,8 @@ namespace TSKT
             var pairTags = new ArrayBuilder<Tag>(tagElements.Count / 2);
             {
                 var positionOffset = 0;
-                var dict = new Dictionary<string, Stack<((string name, string value, bool closing) tag, int position)>> ();
-                for(int i=0; i<tagElements.Count; ++i)
+                var dict = new Dictionary<string, Stack<(string tagValue, int position)>> ();
+                for (int i = 0; i < tagElements.Count; ++i)
                 {
                     var tag = tagElements[i];
                     var position = tagRanges[i].start - positionOffset;
@@ -432,7 +432,7 @@ namespace TSKT
 
                         pairTags.Add(new Tag(
                             left.position,
-                            left.tag.value,
+                            left.tagValue,
                             position,
                             tag.value));
                     }
@@ -440,10 +440,10 @@ namespace TSKT
                     {
                         if (!dict.TryGetValue(tag.name, out var stack))
                         {
-                            stack = new Stack<((string name, string value, bool closing) tag, int position)>();
+                            stack = new Stack<(string tagValue, int position)>();
                             dict.Add(tag.name, stack);
                         }
-                        stack.Push((tag, position));
+                        stack.Push((tag.value, position));
                     }
                 }
 
