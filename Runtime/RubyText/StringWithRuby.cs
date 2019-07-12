@@ -38,6 +38,33 @@ namespace TSKT
             }
         }
 
+        struct ArrayBuilder<T>
+        {
+            readonly T[] array;
+            public T[] Array
+            {
+                get
+                {
+                    UnityEngine.Assertions.Assert.AreEqual(array.Length, index);
+                    return array;
+                }
+            }
+
+            int index;
+
+            public ArrayBuilder(int count)
+            {
+                array = new T[count];
+                index = 0;
+            }
+
+            public void Add(T value)
+            {
+                array[index] = value;
+                ++index;
+            }
+        }
+
         readonly public Ruby[] rubies;
         readonly public string joinedRubyText;
         readonly public string body;
@@ -53,83 +80,97 @@ namespace TSKT
 
         public static StringWithRuby Combine(StringWithRuby left, StringWithRuby right)
         {
-            var rubies = new Ruby[left.rubies.Length + right.rubies.Length];
+            Ruby[] newRubies;
 
-            for (int i = 0; i < left.rubies.Length; ++i)
+            if (right.rubies.Length == 0)
             {
-                rubies[i] = left.rubies[i];
+                newRubies = left.rubies;
+            }
+            else
+            {
+                var rubyBuilder = new ArrayBuilder<Ruby>(left.rubies.Length + right.rubies.Length);
+
+                foreach(var it in left.rubies)
+                {
+                    rubyBuilder.Add(it);
+                }
+
+                foreach(var it in right.rubies)
+                {
+                    var ruby = new Ruby(
+                        textPosition: it.textPosition + left.joinedRubyText.Length,
+                        textLength: it.textLength,
+                        bodyStringRange: new RangeInt(it.bodyStringRange.start + left.body.Length, it.bodyStringRange.length));
+
+                    rubyBuilder.Add(ruby);
+                }
+
+                newRubies = rubyBuilder.Array;
             }
 
-            for (int i = 0; i < right.rubies.Length; ++i)
+            Tag[] newTags;
+            if (right.tags.Length == 0)
             {
-                var dest = left.rubies.Length + i;
-                var rightWord = right.rubies[i];
-                var ruby = new Ruby(
-                    textPosition: rightWord.textPosition + left.joinedRubyText.Length,
-                    textLength: rightWord.textLength,
-                    bodyStringRange: new RangeInt(rightWord.bodyStringRange.start + left.body.Length, rightWord.bodyStringRange.length));
-                rubies[dest] = ruby;
+                newTags = left.tags;
+            }
+            else
+            {
+                var tagBuilder = new ArrayBuilder<Tag>(left.tags.Length + right.tags.Length);
+                foreach(var it in left.tags)
+                {
+                    tagBuilder.Add(it);
+                }
+                foreach(var it in right.tags)
+                {
+                    var t = new Tag(
+                        leftIndex: it.leftIndex + left.body.Length,
+                        left: it.left,
+                        rightIndex: it.rightIndex + left.body.Length,
+                        right: it.right);
+                    tagBuilder.Add(t);
+                }
+                newTags = tagBuilder.Array;
             }
 
-            var newTags = new Tag[left.tags.Length + right.tags.Length];
-            for (int i = 0; i < left.tags.Length; ++i)
-            {
-                newTags[i] = left.tags[i];
-            }
-            for (int i = 0; i < right.tags.Length; ++i)
-            {
-                newTags[i + left.tags.Length] = new Tag(
-                    leftIndex: right.tags[i].leftIndex + left.body.Length,
-                    left: right.tags[i].left,
-                    rightIndex: right.tags[i].rightIndex + left.body.Length,
-                    right: right.tags[i].right);
-            }
-
-            return new StringWithRuby(left.body + right.body, rubies, left.joinedRubyText + right.joinedRubyText, newTags);
+            return new StringWithRuby(left.body + right.body, newRubies, left.joinedRubyText + right.joinedRubyText, newTags);
         }
 
         public StringWithRuby Remove(int startIndex, int count)
         {
             var newBody = body.Remove(startIndex, count);
+            var removeRange = new RangeInt(startIndex, count);
 
             // ルビの移動
-            var rubyBuilders = new List<(RangeInt bodyRange, Ruby original)>();
-            foreach(var it in rubies)
+            var newJoinedRubyText = new System.Text.StringBuilder();
+            var newRubies = new List<Ruby>();
+            foreach (var it in rubies)
             {
-                var range = TrimRange(it.bodyStringRange,
-                    new RangeInt(startIndex, count));
-                if (range.length > 0)
+                var newBodyRange = TrimRange(it.bodyStringRange, removeRange);
+                if (newBodyRange.length > 0)
                 {
-                    rubyBuilders.Add((range, it));
+                    var ruby = new Ruby(
+                        textPosition: newJoinedRubyText.Length,
+                        textLength: it.textLength,
+                        bodyStringRange: newBodyRange);
+                    newRubies.Add(ruby);
+                    newJoinedRubyText.Append(joinedRubyText, it.textPosition, it.textLength);
                 }
             }
 
             // タグの移動
-            var newTags = new List<Tag>();
+            var newTags = new List<Tag>(tags.Length);
             foreach(var it in tags)
             {
                 var range = TrimRange(
                     new RangeInt(it.leftIndex, it.rightIndex - it.leftIndex),
-                    new RangeInt(startIndex, count));
+                    removeRange);
+
                 if (range.length > 0)
                 {
                     newTags.Add(new Tag(
                             range.start, it.left,
                             range.end, it.right));
                 }
-            }
-
-            // ルビの再生成
-            var newJoinedRubyText = new System.Text.StringBuilder();
-            var newRubies = new List<Ruby>();
-            foreach(var it in rubyBuilders)
-            {
-                var ruby = new Ruby(
-                    textPosition: newJoinedRubyText.Length,
-                    textLength: it.original.textLength,
-                    bodyStringRange: it.bodyRange);
-                newRubies.Add(ruby);
-                newJoinedRubyText.Append(joinedRubyText, it.original.textPosition, it.original.textLength);
             }
 
             return new StringWithRuby(newBody,
@@ -210,7 +251,7 @@ namespace TSKT
             var newBody = body.Insert(startIndex, value.body);
 
             // ルビ
-            var rubyBuilder = new List<(RangeInt range, Ruby ruby, string joinedText)>();
+            var rubyBuilder = new ArrayBuilder<(RangeInt range, Ruby ruby, string joinedText)>(rubies.Length + value.rubies.Length);
             foreach (var it in rubies)
             {
                 if (it.bodyStringRange.end <= startIndex)
@@ -248,7 +289,7 @@ namespace TSKT
 
             var newRubies = new List<Ruby>();
             var newRubyText = new System.Text.StringBuilder();
-            foreach (var builder in rubyBuilder.OrderBy(_ => _.range.start))
+            foreach (var builder in rubyBuilder.Array.OrderBy(_ => _.range.start))
             {
                 newRubies.Add(new Ruby(
                     textPosition: newRubyText.Length,
@@ -258,7 +299,7 @@ namespace TSKT
             }
 
             // tag
-            var newTags = new List<Tag>();
+            var newTags = new ArrayBuilder<Tag>(tags.Length + value.tags.Length);
             foreach (var it in tags)
             {
                 if (it.rightIndex <= startIndex)
@@ -292,29 +333,42 @@ namespace TSKT
                     it.right));
             }
 
-            return new StringWithRuby(newBody, newRubies.ToArray(), newRubyText.ToString(), newTags.ToArray());
+            return new StringWithRuby(newBody, newRubies.ToArray(), newRubyText.ToString(), newTags.Array);
         }
 
         public StringWithRuby InsertTag(int leftIndex, string left, int rightIndex, string right)
         {
-            var tags = new List<Tag>(this.tags);
-            tags.Add(new Tag(leftIndex, left, rightIndex, right));
+            var tagBuilder = new ArrayBuilder<Tag>(tags.Length + 1);
 
-            return new StringWithRuby(body, rubies, joinedRubyText, tags.ToArray());
+            foreach(var it in tags)
+            {
+                tagBuilder.Add(it);
+            }
+            tagBuilder.Add(new Tag(leftIndex, left, rightIndex, right));
+
+            return new StringWithRuby(body, rubies, joinedRubyText, tagBuilder.Array);
         }
 
-        public StringWithRuby InsertTags(params Tag[] tags)
+        public StringWithRuby InsertTags(params Tag[] array)
         {
-            var t = new List<Tag>(this.tags);
-            t.AddRange(tags);
+            var tagBuilder = new ArrayBuilder<Tag>(tags.Length + array.Length);
 
-            return new StringWithRuby(body, rubies, joinedRubyText, t.ToArray());
+            foreach (var it in tags)
+            {
+                tagBuilder.Add(it);
+            }
+            foreach (var it in array)
+            {
+                tagBuilder.Add(it);
+            }
+
+            return new StringWithRuby(body, rubies, joinedRubyText, tagBuilder.Array);
         }
 
         public StringWithRuby FoldTag()
         {
             var tagRanges = new List<RangeInt>();
-            var tags = new List<(string name, string value, bool closing)>();
+            var tagElements = new List<(string name, string value, bool closing)>();
             {
                 var position = 0;
                 while (true)
@@ -350,34 +404,34 @@ namespace TSKT
                         closingTag = false;
                     }
 
-                    tags.Add((
+                    tagElements.Add((
                         tagName,
                         value: tagString,
                         closing: closingTag));
                 }
             }
 
-            if (tags.Count == 0)
+            if (tagElements.Count == 0)
             {
                 return this;
             }
 
             // 削除後の位置計算
-            var tagInsertPositions = new List<int>();
+            var tagInsertPositions = new ((string name, string value, bool closing) tag, int position)[tagRanges.Count];
             {
                 var removeLength = 0;
-                foreach (var it in tagRanges)
+                for(int i=0; i<tagRanges.Count; ++i)
                 {
-                    tagInsertPositions.Add(it.start - removeLength);
-                    removeLength += it.length;
+                    var position = tagRanges[i].start - removeLength;
+                    tagInsertPositions[i] = (tagElements[i], position);
+                    removeLength += tagRanges[i].length;
                 }
             }
 
-            var pairTags = new List<Tag>();
+            var pairTags = new ArrayBuilder<Tag>(tagElements.Count / 2);
             {
                 var dict = new Dictionary<string, Stack<((string name, string value, bool closing) tag, int position)>> ();
-                var tagIndices = tags.Zip(tagInsertPositions, (t, p) => (tag: t, position: p));
-                foreach (var it in tagIndices)
+                foreach (var it in tagInsertPositions)
                 {
                     if (it.tag.closing)
                     {
@@ -412,7 +466,7 @@ namespace TSKT
                 result = result.Remove(range.start, range.length);
             }
 
-            result = result.InsertTags(pairTags.ToArray());
+            result = result.InsertTags(pairTags.Array);
 
             return result;
         }
@@ -424,15 +478,15 @@ namespace TSKT
                 return this;
             }
 
-            var t = new List<(int index, string value, int subSort)>();
+            var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tags.Length * 2);
             for (int i = 0; i < tags.Length; ++i)
             {
                 var tag = tags[i];
-                t.Add((tag.leftIndex, tag.left, subSort: -i));
-                t.Add((tag.rightIndex, tag.right, subSort: i));
+                tagElements.Add((tag.leftIndex, tag.left, subSort: -i));
+                tagElements.Add((tag.rightIndex, tag.right, subSort: i));
             }
 
-            var sortedTags = t
+            var sortedTags = tagElements.Array
                 .OrderByDescending(_ => _.index)
                 .ThenByDescending(_ => _.subSort);
 
