@@ -416,42 +416,34 @@ namespace TSKT
                 return this;
             }
 
-            // 削除後の位置計算
-            var tagInsertPositions = new ((string name, string value, bool closing) tag, int position)[tagRanges.Count];
-            {
-                var removeLength = 0;
-                for(int i=0; i<tagRanges.Count; ++i)
-                {
-                    var position = tagRanges[i].start - removeLength;
-                    tagInsertPositions[i] = (tagElements[i], position);
-                    removeLength += tagRanges[i].length;
-                }
-            }
-
             var pairTags = new ArrayBuilder<Tag>(tagElements.Count / 2);
             {
+                var positionOffset = 0;
                 var dict = new Dictionary<string, Stack<((string name, string value, bool closing) tag, int position)>> ();
-                foreach (var it in tagInsertPositions)
+                for(int i=0; i<tagElements.Count; ++i)
                 {
-                    if (it.tag.closing)
+                    var tag = tagElements[i];
+                    var position = tagRanges[i].start - positionOffset;
+                    positionOffset += tagRanges[i].length;
+                    if (tag.closing)
                     {
-                        dict.TryGetValue(it.tag.name, out var stack);
+                        dict.TryGetValue(tag.name, out var stack);
                         var left = stack.Pop();
 
                         pairTags.Add(new Tag(
                             left.position,
                             left.tag.value,
-                            it.position,
-                            it.tag.value));
+                            position,
+                            tag.value));
                     }
                     else
                     {
-                        if (!dict.TryGetValue(it.tag.name, out var stack))
+                        if (!dict.TryGetValue(tag.name, out var stack))
                         {
                             stack = new Stack<((string name, string value, bool closing) tag, int position)>();
-                            dict.Add(it.tag.name, stack);
+                            dict.Add(tag.name, stack);
                         }
-                        stack.Push(it);
+                        stack.Push((tag, position));
                     }
                 }
 
@@ -459,11 +451,14 @@ namespace TSKT
             }
 
             // bodyからtag文字列を削除
-            tagRanges.Reverse();
             var result = this;
-            foreach (var range in tagRanges)
             {
-                result = result.Remove(range.start, range.length);
+                var removedRange = 0;
+                foreach (var range in tagRanges)
+                {
+                    result = result.Remove(range.start - removedRange, range.length);
+                    removedRange += range.length;
+                }
             }
 
             result = result.InsertTags(pairTags.Array);
