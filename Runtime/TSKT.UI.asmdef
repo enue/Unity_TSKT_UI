@@ -1,3 +1,15 @@
-﻿{
-	"name": "TSKT.UI"
+{
+    "name": "TSKT.UI",
+    "references": [
+        "TSKTContainer"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
 }

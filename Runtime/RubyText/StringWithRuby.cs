@@ -38,33 +38,6 @@ namespace TSKT
             }
         }
 
-        struct ArrayBuilder<T>
-        {
-            readonly T[] array;
-            public T[] Array
-            {
-                get
-                {
-                    UnityEngine.Assertions.Assert.AreEqual(array.Length, index);
-                    return array;
-                }
-            }
-
-            int index;
-
-            public ArrayBuilder(int count)
-            {
-                array = new T[count];
-                index = 0;
-            }
-
-            public void Add(T value)
-            {
-                array[index] = value;
-                ++index;
-            }
-        }
-
         readonly public Ruby[] rubies;
         readonly public string joinedRubyText;
         readonly public string body;
