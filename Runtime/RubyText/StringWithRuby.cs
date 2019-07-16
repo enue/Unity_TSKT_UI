@@ -260,7 +260,7 @@ namespace TSKT
                     value.joinedRubyText));
             }
 
-            var newRubies = new List<Ruby>();
+            var newRubies = new ArrayBuilder<Ruby>(rubyBuilder.Array.Length);
             var newRubyText = new System.Text.StringBuilder();
             foreach (var builder in rubyBuilder.Array.OrderBy(_ => _.range.start))
             {
@@ -306,7 +306,7 @@ namespace TSKT
                     it.right));
             }
 
-            return new StringWithRuby(newBody, newRubies.ToArray(), newRubyText.ToString(), newTags.Array);
+            return new StringWithRuby(newBody, newRubies.Array, newRubyText.ToString(), newTags.Array);
         }
 
         public StringWithRuby InsertTag(int leftIndex, string left, int rightIndex, string right)
