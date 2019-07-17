@@ -1,0 +1,2 @@
+﻿このライブラリには改変された unity-vertex-effects を使用しています。
+https://github.com/n-yoda/unity-vertex-effects
