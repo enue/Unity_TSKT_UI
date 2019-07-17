@@ -224,13 +224,13 @@ namespace TSKT
             var newBody = body.Insert(startIndex, value.body);
 
             // ルビ
-            var rubyBuilder = new ArrayBuilder<(RangeInt range, Ruby ruby, string joinedText)>(rubies.Length + value.rubies.Length);
+            var rubyBuilder = new ArrayBuilder<(RangeInt range, RangeInt joinedTextRange, string joinedText)>(rubies.Length + value.rubies.Length);
             foreach (var it in rubies)
             {
                 if (it.bodyStringRange.end <= startIndex)
                 {
                     // 挿入部分より前
-                    rubyBuilder.Add((it.bodyStringRange, it, joinedRubyText));
+                    rubyBuilder.Add((it.bodyStringRange, new RangeInt(it.textPosition, it.textLength), joinedRubyText));
                 }
                 else if (it.bodyStringRange.start < startIndex
                     && it.bodyStringRange.end >= startIndex)
@@ -238,7 +238,7 @@ namespace TSKT
                     // 挿入部分をまたぐ
                     rubyBuilder.Add((
                         new RangeInt(it.bodyStringRange.start, it.bodyStringRange.length + value.body.Length),
-                        it,
+                        new RangeInt(it.textPosition, it.textLength),
                         joinedRubyText));
                 }
                 else
@@ -246,7 +246,7 @@ namespace TSKT
                     // 挿入部分より後
                     rubyBuilder.Add((
                         new RangeInt(it.bodyStringRange.start + value.body.Length, it.bodyStringRange.length),
-                        it,
+                        new RangeInt(it.textPosition, it.textLength),
                         joinedRubyText));
                 }
             }
@@ -256,7 +256,7 @@ namespace TSKT
             {
                 rubyBuilder.Add((
                     new RangeInt(it.bodyStringRange.start + startIndex, it.bodyStringRange.length),
-                    it,
+                    new RangeInt(it.textPosition, it.textLength),
                     value.joinedRubyText));
             }
 
@@ -266,9 +266,9 @@ namespace TSKT
             {
                 newRubies.Add(new Ruby(
                     textPosition: newRubyText.Length,
-                    textLength: builder.ruby.textLength,
+                    textLength: builder.joinedTextRange.length,
                     bodyStringRange: builder.range));
-                newRubyText.Append(builder.joinedText, builder.ruby.textPosition, builder.ruby.textLength);
+                newRubyText.Append(builder.joinedText, builder.joinedTextRange.start, builder.joinedTextRange.length);
             }
 
             // tag
