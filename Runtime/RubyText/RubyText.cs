@@ -62,6 +62,10 @@ namespace TSKT
             {
                 return;
             }
+            if (string.IsNullOrWhiteSpace(Text.text))
+            {
+                return;
+            }
 
             var bodyCharacterPositions = new List<(float left, float right, float y)>();
             {
@@ -120,6 +124,11 @@ namespace TSKT
                         ? (bodyCharactersForRuby.Length - newLine[i])
                         : newLine[i + 1] - newLine[i];
 
+                    if (bodyCharactersForRuby.Length < (characterIndex + characterCount))
+                    {
+                        continue;
+                    }
+
                     int currentRubyLength;
                     if (i == newLine.Count - 1)
                     {
@@ -130,10 +139,6 @@ namespace TSKT
                         currentRubyLength = splitRubyLength;
                     }
 
-                    if (bodyCharactersForRuby.Length < (characterIndex + characterCount))
-                    {
-                        continue;
-                    }
                     var bodyBounds = GetBounds(bodyCharactersForRuby, characterIndex, characterCount);
 
                     var rubyIndex = ruby.textPosition + splitRubyLength * i;
