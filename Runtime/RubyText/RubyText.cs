@@ -10,7 +10,7 @@ namespace TSKT
     [RequireComponent(typeof(Text))]
     public class RubyText : BaseMeshEffect
     {
-        public const int VertexCountPerQuad = 6;
+        public const int VertexCountPerQuad = 4;
 
         Text text;
         Text Text
@@ -54,19 +54,6 @@ namespace TSKT
             {
                 return;
             }
-
-            var vertices = UIVerticesPool.Get();
-
-            vh.GetUIVertexStream(vertices);
-            ModifyMesh(vertices);
-            vh.Clear();
-            vh.AddUIVertexTriangleStream(vertices);
-
-            UIVerticesPool.Release(vertices);
-        }
-
-        void ModifyMesh(List<UIVertex> list)
-        {
             if (stringWithRuby.rubies == null)
             {
                 return;
@@ -143,11 +130,15 @@ namespace TSKT
                         currentRubyLength = splitRubyLength;
                     }
 
+                    if (bodyCharactersForRuby.Length < (characterIndex + characterCount))
+                    {
+                        continue;
+                    }
                     var bodyBounds = GetBounds(bodyCharactersForRuby, characterIndex, characterCount);
 
                     var rubyIndex = ruby.textPosition + splitRubyLength * i;
 
-                    ModifyRubyPosition(ref list, rubyIndex, currentRubyLength, bodyBounds);
+                    ModifyRubyPosition(ref vh, rubyIndex, currentRubyLength, bodyBounds);
                 }
             }
         }
@@ -168,12 +159,22 @@ namespace TSKT
             return (xMin, xMax, yMax);
         }
 
-        void ModifyRubyPosition(ref List<UIVertex> rubyVertices,
+        void ModifyRubyPosition(ref VertexHelper rubyVertices,
             int rubyIndex, int rubyLength,
             (float xMin, float xMax, float yMax) bodyBounds)
         {
+            UIVertex vertex = default;
+            var vertexCount = rubyVertices.currentVertCount;
             for (int i = 0; i < rubyLength; ++i)
             {
+                {
+                    var requireCount = (rubyIndex + i + 1) * VertexCountPerQuad;
+                    if (requireCount > vertexCount)
+                    {
+                        break;
+                    }
+                }
+
                 var t = Mathf.InverseLerp(
                     -0.4f,
                     rubyLength - 1f + 0.4f,
@@ -182,28 +183,25 @@ namespace TSKT
                     Mathf.Lerp(bodyBounds.xMin, bodyBounds.xMax, t),
                     bodyBounds.yMax + positionY);
 
-                var quadVertices = rubyVertices
-                    .Skip((rubyIndex + i) * VertexCountPerQuad)
-                    .Take(VertexCountPerQuad);
-
-                if (!quadVertices.Any())
+                var average = Vector2.zero;
+                for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
-                    continue;
+                    var index = (rubyIndex + i) * VertexCountPerQuad + j;
+                    rubyVertices.PopulateUIVertex(ref vertex, index);
+                    average += new Vector2(vertex.position.x, vertex.position.y);
                 }
+                average /= VertexCountPerQuad;
 
-                var fromPosition = new Vector2(
-                    quadVertices.Average(_ => _.position.x),
-                    quadVertices.Average(_ => _.position.y));
-
+                var fromPosition = average;
                 var move = toPosition - fromPosition;
 
                 for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
                     var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    var v = rubyVertices[index];
-                    v.position.x += move.x;
-                    v.position.y += move.y;
-                    rubyVertices[index] = v;
+                    rubyVertices.PopulateUIVertex(ref vertex, index);
+                    vertex.position.x += move.x;
+                    vertex.position.y += move.y;
+                    rubyVertices.SetUIVertex(vertex, index);
                 }
             }
         }
