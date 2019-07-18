@@ -58,14 +58,6 @@ namespace TSKT
             {
                 return;
             }
-            if (bodyText.text == null)
-            {
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(Text.text))
-            {
-                return;
-            }
 
             var bodyCharacterPositions = new List<(float left, float right, float y)>();
             {
@@ -73,7 +65,7 @@ namespace TSKT
 
                 using (var generator = new TextGenerator())
                 {
-                    generator.PopulateWithErrors(bodyText.text, settings, gameObject);
+                    generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
 
                     if (charInfoBuffer == null)
                     {
