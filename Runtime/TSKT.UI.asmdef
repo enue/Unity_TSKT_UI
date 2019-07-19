@@ -1,7 +1,8 @@
 {
     "name": "TSKT.UI",
     "references": [
-        "TSKTContainer"
+        "TSKTContainer",
+        "Unity.TextMeshPro"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

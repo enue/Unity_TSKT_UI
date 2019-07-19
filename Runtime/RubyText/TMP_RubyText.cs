@@ -7,22 +7,22 @@ using System.Linq;
 
 namespace TSKT
 {
-    [RequireComponent(typeof(Text))]
-    public class RubyText : BaseMeshEffect
+    [RequireComponent(typeof(TMPro.TMP_Text))]
+    public class TMP_RubyText : MonoBehaviour
     {
         public const int VertexCountPerQuad = 4;
 
-        Text text;
-        Text Text
+        TMPro.TMP_Text text;
+        TMPro.TMP_Text Text
         {
             get
             {
-                return text ?? (text = GetComponent<Text>());
+                return text ?? (text = GetComponent<TMPro.TMP_Text>());
             }
         }
 
         [SerializeField]
-        Text bodyText;
+        TMPro.TMP_Text bodyText;
 
         [SerializeField]
         float positionY = 8f;
@@ -32,62 +32,60 @@ namespace TSKT
 
         StringWithRuby stringWithRuby;
 
-        List<UICharInfo> charInfoBuffer;
+        List<Vector3> vertexBuffer;
 
         public void Set(StringWithRuby stringWithRuby)
         {
             Text.text = stringWithRuby.joinedRubyText;
             this.stringWithRuby = stringWithRuby;
+
+            ModifyMesh();
         }
 
         void Update()
         {
             if (forceRefresh)
             {
-                Text.SetAllDirty();
+                ModifyMesh();
             }
         }
 
-        public override void ModifyMesh(VertexHelper vh)
+        void ModifyMesh()
         {
-            if (!IsActive())
+            if (!gameObject.activeInHierarchy)
             {
                 return;
             }
-            if (stringWithRuby.rubies == null)
+            if (stringWithRuby.rubies.Length == 0)
             {
                 return;
             }
 
-            (float left, float right, float y)[] bodyCharacterPositions;
+            var bodyCharacterPositions = new (float left, float right, float y)[stringWithRuby.body.Length];
             {
-                var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
-
-                using (var generator = new TextGenerator())
+                // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
+                var textInfo = bodyText.GetTextInfo(stringWithRuby.body);
+                if (textInfo.characterCount == 0)
                 {
-                    generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
-
-                    if (charInfoBuffer == null)
-                    {
-                        charInfoBuffer = new List<UICharInfo>();
-                    }
-                    charInfoBuffer.Clear();
-
-                    var characters = charInfoBuffer;
-                    generator.GetCharacters(characters);
-
-                    var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
-                    var scale = 1f / bodyText.pixelsPerUnit;
-                    foreach(var character in characters)
-                    {
-                        var left = character.cursorPos.x * scale;
-                        var right = (character.cursorPos.x + character.charWidth) * scale;
-                        var y = character.cursorPos.y * scale;
-                        builder.Add((left, right, y));
-                    }
-                    bodyCharacterPositions = builder.Array;
+                    return;
+                }
+                for (int i = 0; i < textInfo.characterCount; ++i)
+                {
+                    var it = textInfo.characterInfo[i];
+                    bodyCharacterPositions[it.index] = (
+                        it.topLeft.x,
+                        it.topRight.x,
+                        it.topLeft.y);
                 }
             }
+
+            Text.ForceMeshUpdate();
+            var mesh = Text.mesh;
+            if (vertexBuffer == null)
+            {
+                vertexBuffer = new List<Vector3>();
+            }
+            mesh.GetVertices(vertexBuffer);
 
             foreach (var ruby in stringWithRuby.rubies)
             {
@@ -138,37 +136,24 @@ namespace TSKT
                         currentRubyLength = splitRubyLength;
                     }
 
-                    var bodyBounds = GetBounds(bodyCharactersForRuby, characterIndex, characterCount);
+                    var bodyBounds = RubyText.GetBounds(bodyCharactersForRuby, characterIndex, characterCount);
 
                     var rubyIndex = ruby.textPosition + splitRubyLength * i;
 
-                    ModifyRubyPosition(ref vh, rubyIndex, currentRubyLength, bodyBounds);
+                    ModifyRubyPosition(vertexBuffer, rubyIndex, currentRubyLength, bodyBounds);
                 }
             }
+
+            mesh.SetVertices(vertexBuffer);
+
+            Text.UpdateGeometry(mesh, 0);
         }
 
-        public static (float xMin, float xMax, float yMax) GetBounds((float left, float right, float y)[] characters,
-            int startIndex, int count)
-        {
-            var xMax = characters[startIndex].right;
-            var xMin = characters[startIndex].left;
-            var yMax = characters[startIndex].y;
-            for (int i = 1; i < count; ++i)
-            {
-                var index = startIndex + i;
-                xMax = Mathf.Max(xMax, characters[index].right);
-                xMin = Mathf.Min(xMin, characters[index].left);
-                yMax = Mathf.Max(yMax, characters[index].y);
-            }
-            return (xMin, xMax, yMax);
-        }
-
-        void ModifyRubyPosition(ref VertexHelper rubyVertices,
+        void ModifyRubyPosition(List<Vector3> rubyVertices,
             int rubyIndex, int rubyLength,
             (float xMin, float xMax, float yMax) bodyBounds)
         {
-            UIVertex vertex = default;
-            var vertexCount = rubyVertices.currentVertCount;
+            var vertexCount = rubyVertices.Count;
             for (int i = 0; i < rubyLength; ++i)
             {
                 {
@@ -191,8 +176,8 @@ namespace TSKT
                 for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
                     var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    rubyVertices.PopulateUIVertex(ref vertex, index);
-                    average += new Vector2(vertex.position.x, vertex.position.y);
+                    var vertex = rubyVertices[index];
+                    average += new Vector2(vertex.x, vertex.y);
                 }
                 average /= VertexCountPerQuad;
 
@@ -202,10 +187,10 @@ namespace TSKT
                 for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
                     var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    rubyVertices.PopulateUIVertex(ref vertex, index);
-                    vertex.position.x += move.x;
-                    vertex.position.y += move.y;
-                    rubyVertices.SetUIVertex(vertex, index);
+                    var vertex = rubyVertices[index];
+                    vertex.x += move.x;
+                    vertex.y += move.y;
+                    rubyVertices[index] = vertex;
                 }
             }
         }
