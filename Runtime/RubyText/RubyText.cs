@@ -59,7 +59,7 @@ namespace TSKT
                 return;
             }
 
-            var bodyCharacterPositions = new List<(float left, float right, float y)>();
+            (float left, float right, float y)[] bodyCharacterPositions;
             {
                 var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
@@ -75,15 +75,17 @@ namespace TSKT
 
                     var characters = charInfoBuffer;
                     generator.GetCharacters(characters);
+
+                    var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
                     var scale = 1f / bodyText.pixelsPerUnit;
-                    for (int i = 0; i < characters.Count; ++i)
+                    foreach(var character in characters)
                     {
-                        var character = characters[i];
                         var left = character.cursorPos.x * scale;
                         var right = (character.cursorPos.x + character.charWidth) * scale;
                         var y = character.cursorPos.y * scale;
-                        bodyCharacterPositions.Add((left, right, y));
+                        builder.Add((left, right, y));
                     }
+                    bodyCharacterPositions = builder.Array;
                 }
             }
 
