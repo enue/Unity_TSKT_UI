@@ -22,13 +22,13 @@ namespace TSKT
         }
 
         [SerializeField]
-        Text bodyText;
+        Text bodyText = default;
 
         [SerializeField]
         float positionY = 8f;
 
         [SerializeField]
-        bool forceRefresh;
+        bool forceRefresh = default;
 
         StringWithRuby stringWithRuby;
 

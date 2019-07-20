@@ -22,13 +22,13 @@ namespace TSKT
         }
 
         [SerializeField]
-        TMPro.TMP_Text bodyText;
+        TMPro.TMP_Text bodyText = default;
 
         [SerializeField]
         float positionY = 8f;
 
         [SerializeField]
-        bool forceRefresh;
+        bool forceRefresh = default;
 
         StringWithRuby stringWithRuby;
 
