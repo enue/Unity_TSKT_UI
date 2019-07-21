@@ -154,6 +154,68 @@ namespace TSKT
             (float xMin, float xMax, float yMax) bodyBounds)
         {
             var vertexCount = rubyVertices.Count;
+
+            float rubyBoundsLeft;
+            float rubyBoundsRight;
+            float advance;
+            {
+                var rubyWidth = 0f;
+                var lastQuadWidth = 0f;
+                for (int i = 0; i < rubyLength; ++i)
+                {
+                    {
+                        var requireCount = (rubyIndex + i + 1) * VertexCountPerQuad;
+                        if (requireCount > vertexCount)
+                        {
+                            continue;
+                        }
+                    }
+
+                    var minX = float.MaxValue;
+                    var maxX = float.MinValue;
+                    for (int j = 0; j < VertexCountPerQuad; ++j)
+                    {
+                        var index = j + (i + rubyIndex) * VertexCountPerQuad;
+                        minX = Mathf.Min(minX, rubyVertices[index].x);
+                        maxX = Mathf.Max(maxX, rubyVertices[index].x);
+                    }
+                    var quadWidth = maxX - minX;
+                    rubyWidth += quadWidth;
+
+                    if (i == rubyLength - 1)
+                    {
+                        lastQuadWidth = quadWidth;
+                    }
+                }
+                if (rubyLength == 1)
+                {
+                    var center = (bodyBounds.xMax + bodyBounds.xMin) / 2f;
+                    rubyBoundsLeft = center - rubyWidth / 2f;
+                    rubyBoundsRight = center + rubyWidth / 2f;
+                }
+                else if (rubyWidth > (bodyBounds.xMax - bodyBounds.xMin))
+                {
+                    var center = (bodyBounds.xMax + bodyBounds.xMin) / 2f;
+                    rubyBoundsLeft = center - rubyWidth / 2f;
+                    rubyBoundsRight = center + rubyWidth / 2f;
+                }
+                else
+                {
+                    rubyBoundsLeft = bodyBounds.xMin;
+                    rubyBoundsRight = bodyBounds.xMax;
+                }
+
+                if (rubyWidth - lastQuadWidth != 0f)
+                {
+                    advance = (rubyBoundsRight - rubyBoundsLeft - lastQuadWidth) / (rubyWidth - lastQuadWidth);
+                }
+                else
+                {
+                    advance = 0f;
+                }
+            }
+
+            var position = rubyBoundsLeft;
             for (int i = 0; i < rubyLength; ++i)
             {
                 {
@@ -164,24 +226,20 @@ namespace TSKT
                     }
                 }
 
-                var t = Mathf.InverseLerp(
-                    -0.4f,
-                    rubyLength - 1f + 0.4f,
-                    i);
-                var toPosition = new Vector2(
-                    Mathf.Lerp(bodyBounds.xMin, bodyBounds.xMax, t),
-                    bodyBounds.yMax + positionY);
+                var toPosition = new Vector2(position, bodyBounds.yMax + positionY);
 
-                var average = Vector2.zero;
+                var quadAverageY = 0f;
+                var quadLeft = float.MaxValue;
+                var quadRight = float.MinValue;
                 for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
                     var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    var vertex = rubyVertices[index];
-                    average += new Vector2(vertex.x, vertex.y);
+                    quadAverageY += rubyVertices[index].y;
+                    quadRight = Mathf.Max(quadRight, rubyVertices[index].x);
+                    quadLeft = Mathf.Min(quadLeft, rubyVertices[index].x);
                 }
-                average /= VertexCountPerQuad;
-
-                var fromPosition = average;
+                quadAverageY /= VertexCountPerQuad;
+                var fromPosition = new Vector2(quadLeft, quadAverageY);
                 var move = toPosition - fromPosition;
 
                 for (int j = 0; j < VertexCountPerQuad; ++j)
@@ -192,6 +250,8 @@ namespace TSKT
                     vertex.y += move.y;
                     rubyVertices[index] = vertex;
                 }
+
+                position += (quadRight - quadLeft) * advance;
             }
         }
     }
