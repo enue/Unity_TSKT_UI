@@ -51,10 +51,16 @@ void Start()
 IEnumerator Start()
 {
     var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
-    var stringWithRuby = StringWithRuby.Parse(message).FoldTag();
+    var stringWithRuby = StringWithRuby.Parse(message)
+        .FoldTag()
+        .WrapWithHyphenation(body, new HyphenationJpns.Ruler());
 
     for (int i = 0; i < stringWithRuby.body.Length; ++i)
     {
+        if (stringWithRuby.body[i] == '\n')
+        {
+            continue;
+        }
         var sub = stringWithRuby.Substring(0, i).UnfoldTag();
         ruby.Set(sub);
         body.text = sub.body;
