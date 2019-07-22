@@ -28,6 +28,9 @@ namespace TSKT
         float positionY = 8f;
 
         [SerializeField]
+        float boundsWidthDelta = 0f;
+
+        [SerializeField]
         bool forceRefresh = default;
 
         StringWithRuby stringWithRuby;
@@ -139,6 +142,8 @@ namespace TSKT
                     }
 
                     var bodyBounds = GetBounds(bodyCharactersForRuby, characterIndex, characterCount);
+                    bodyBounds.xMin -= boundsWidthDelta;
+                    bodyBounds.xMax += boundsWidthDelta;
 
                     var rubyIndex = ruby.textPosition + splitRubyLength * i;
 
