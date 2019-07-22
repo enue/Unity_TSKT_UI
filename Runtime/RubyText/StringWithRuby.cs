@@ -154,6 +154,13 @@ namespace TSKT
 
         public StringWithRuby Substring(int startIndex, int length)
         {
+            if (startIndex < 0
+                || length < 0
+                || startIndex + length > body.Length)
+            {
+                throw new System.ArgumentException();
+            }
+
             // 削除部分に重なっているルビを削除
             var newRubies = rubies
                 .Where(_ => _.bodyStringRange.start >= startIndex)
@@ -510,6 +517,28 @@ namespace TSKT
             }
 
             return new StringWithRuby(bodyText.ToString(), rubies.ToArray(), rubyText.ToString(), System.Array.Empty<Tag>());
+        }
+
+        public StringWithRuby WrapWithHyphenation(UnityEngine.UI.Text text, HyphenationJpns.Ruler ruler, bool allowSplitRuby = false)
+        {
+            var newLinePositions = ruler.GetNewLinePositions(text.rectTransform.rect.width,
+                text.font,
+                text.fontSize,
+                text.fontStyle,
+                body,
+                false,
+                allowSplitRuby ? null : rubies.Select(_ => _.bodyStringRange).ToArray());
+
+            var result = this;
+            if (newLinePositions.Count > 0)
+            {
+                var newLine = new StringWithRuby("\n", null, null, null);
+                for (int i = 0; i < newLinePositions.Count; ++i)
+                {
+                    result = result.Insert(newLinePositions[i] + (i * newLine.body.Length), newLine);
+                }
+            }
+            return result;
         }
 
         static RangeInt TrimRange(RangeInt original, RangeInt removeRange)
