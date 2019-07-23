@@ -541,34 +541,31 @@ namespace TSKT
             return result;
         }
 
-        public int[] GetBodyQuadCountRubyQuadCountMap((float left, float right, float position)[] bodyCharacterPositions)
+        public int[] GetBodyQuadCountRubyQuadCountMap(bool[] characterHasQuadList)
         {
-            var result = new ArrayBuilder<int>(bodyCharacterPositions.Count(_ => _.left != _.right) + 1);
+            var result = new ArrayBuilder<int>(characterHasQuadList.Count(_ => _) + 1);
             result.Add(0);
 
             var rubyLength = 0;
-            for (int i = 0; i < bodyCharacterPositions.Length; ++i)
+            for (int i = 0; i < characterHasQuadList.Length; ++i)
             {
+                if (!characterHasQuadList[i])
                 {
-                    var (left, right, position) = bodyCharacterPositions[i];
-                    if (left == right)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
                 var rubyIndex = System.Array.FindIndex(rubies, _ => _.bodyStringRange.start <= i && i < _.bodyStringRange.end);
                 if (rubyIndex >= 0)
                 {
                     var ruby = rubies[rubyIndex];
-                    var totalQuadCountUnderRuby = bodyCharacterPositions
+                    var totalQuadCountUnderRuby = characterHasQuadList
                         .Skip(ruby.bodyStringRange.start)
                         .Take(ruby.bodyStringRange.length)
-                        .Count(_ => _.right != _.left);
-                    var currentQuadCountUnderRuby = bodyCharacterPositions
+                        .Count(_ => _);
+                    var currentQuadCountUnderRuby = characterHasQuadList
                         .Skip(ruby.bodyStringRange.start)
                         .Take(i - ruby.bodyStringRange.start + 1)
-                        .Count(_ => _.right != _.left);
+                        .Count(_ => _);
 
                     rubyLength = ruby.textLength * currentQuadCountUnderRuby / totalQuadCountUnderRuby + ruby.textPosition;
                 }

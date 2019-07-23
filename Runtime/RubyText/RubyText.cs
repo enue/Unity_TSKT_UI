@@ -127,7 +127,7 @@ namespace TSKT
         {
             var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
-            using (var generator = new TextGenerator())
+            using (var generator = new TextGenerator(stringWithRuby.body.Length))
             {
                 generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
 
@@ -148,6 +148,32 @@ namespace TSKT
                     var right = (character.cursorPos.x + character.charWidth) * scale;
                     var y = character.cursorPos.y * scale;
                     builder.Add((left, right, y));
+                }
+                return builder.Array;
+            }
+        }
+
+        bool[] GetCharacterHasQuadList()
+        {
+            var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
+
+            using (var generator = new TextGenerator(stringWithRuby.body.Length))
+            {
+                generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
+
+                if (charInfoBuffer == null)
+                {
+                    charInfoBuffer = new List<UICharInfo>();
+                }
+                charInfoBuffer.Clear();
+
+                var characters = charInfoBuffer;
+                generator.GetCharacters(characters);
+
+                var builder = new ArrayBuilder<bool>(characters.Count);
+                foreach (var character in characters)
+                {
+                    builder.Add(character.charWidth != 0f);
                 }
                 return builder.Array;
             }
@@ -279,8 +305,8 @@ namespace TSKT
 
         public int[] GetBodyQuadCountRubyQuadCountMap()
         {
-            var bodyCharacterPositions = GetBodyCharacterPositions();
-            return stringWithRuby.GetBodyQuadCountRubyQuadCountMap(bodyCharacterPositions);
+            var characterHasQuadList = GetCharacterHasQuadList();
+            return stringWithRuby.GetBodyQuadCountRubyQuadCountMap(characterHasQuadList);
         }
     }
 }
