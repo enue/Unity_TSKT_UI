@@ -62,36 +62,7 @@ namespace TSKT
                 return;
             }
 
-            (float left, float right, float y)[] bodyCharacterPositions;
-            {
-                var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
-
-                using (var generator = new TextGenerator())
-                {
-                    generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
-
-                    if (charInfoBuffer == null)
-                    {
-                        charInfoBuffer = new List<UICharInfo>();
-                    }
-                    charInfoBuffer.Clear();
-
-                    var characters = charInfoBuffer;
-                    generator.GetCharacters(characters);
-
-                    var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
-                    var scale = 1f / bodyText.pixelsPerUnit;
-                    foreach(var character in characters)
-                    {
-                        var left = character.cursorPos.x * scale;
-                        var right = (character.cursorPos.x + character.charWidth) * scale;
-                        var y = character.cursorPos.y * scale;
-                        builder.Add((left, right, y));
-                    }
-                    bodyCharacterPositions = builder.Array;
-                }
-            }
-
+            var bodyCharacterPositions = GetBodyCharacterPositions();
             foreach (var ruby in stringWithRuby.rubies)
             {
                 // 幅がない文字はおそらく制御文字やタグなので撥ねる
@@ -149,6 +120,36 @@ namespace TSKT
 
                     ModifyRubyPosition(ref vh, rubyIndex, currentRubyLength, bodyBounds);
                 }
+            }
+        }
+
+        (float left, float right, float y)[] GetBodyCharacterPositions()
+        {
+            var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
+
+            using (var generator = new TextGenerator())
+            {
+                generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
+
+                if (charInfoBuffer == null)
+                {
+                    charInfoBuffer = new List<UICharInfo>();
+                }
+                charInfoBuffer.Clear();
+
+                var characters = charInfoBuffer;
+                generator.GetCharacters(characters);
+
+                var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
+                var scale = 1f / bodyText.pixelsPerUnit;
+                foreach (var character in characters)
+                {
+                    var left = character.cursorPos.x * scale;
+                    var right = (character.cursorPos.x + character.charWidth) * scale;
+                    var y = character.cursorPos.y * scale;
+                    builder.Add((left, right, y));
+                }
+                return builder.Array;
             }
         }
 
@@ -274,6 +275,12 @@ namespace TSKT
 
                 position += (quadRight - quadLeft) * advance;
             }
+        }
+
+        public int[] GetBodyQuadCountRubyQuadCountMap()
+        {
+            var bodyCharacterPositions = GetBodyCharacterPositions();
+            return stringWithRuby.GetBodyQuadCountRubyQuadCountMap(bodyCharacterPositions);
         }
     }
 }

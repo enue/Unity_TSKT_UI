@@ -64,22 +64,9 @@ namespace TSKT
                 return;
             }
 
-            var bodyCharacterPositions = new (float left, float right, float y)[stringWithRuby.body.Length];
+            if (!TryGetBodyCharacterPositions(out var bodyCharacterPositions))
             {
-                // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
-                var textInfo = bodyText.GetTextInfo(stringWithRuby.body);
-                if (textInfo.characterCount == 0)
-                {
-                    return;
-                }
-                for (int i = 0; i < textInfo.characterCount; ++i)
-                {
-                    var it = textInfo.characterInfo[i];
-                    bodyCharacterPositions[it.index] = (
-                        it.topLeft.x,
-                        it.topRight.x,
-                        it.topLeft.y);
-                }
+                return;
             }
 
             Text.ForceMeshUpdate();
@@ -258,6 +245,30 @@ namespace TSKT
 
                 position += (quadRight - quadLeft) * advance;
             }
+        }
+
+        bool TryGetBodyCharacterPositions(out (float left, float right, float y)[] result)
+        {
+            var bodyCharacterPositions = new (float left, float right, float y)[stringWithRuby.body.Length];
+            {
+                // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
+                var textInfo = bodyText.GetTextInfo(stringWithRuby.body);
+                if (textInfo.characterCount == 0)
+                {
+                    result = null;
+                    return false;
+                }
+                for (int i = 0; i < textInfo.characterCount; ++i)
+                {
+                    var it = textInfo.characterInfo[i];
+                    bodyCharacterPositions[it.index] = (
+                        it.topLeft.x,
+                        it.topRight.x,
+                        it.topLeft.y);
+                }
+            }
+            result = bodyCharacterPositions;
+            return true;
         }
     }
 }

@@ -541,6 +541,43 @@ namespace TSKT
             return result;
         }
 
+        public int[] GetBodyQuadCountRubyQuadCountMap((float left, float right, float position)[] bodyCharacterPositions)
+        {
+            var result = new ArrayBuilder<int>(bodyCharacterPositions.Count(_ => _.left != _.right) + 1);
+            result.Add(0);
+
+            var rubyLength = 0;
+            for (int i = 0; i < bodyCharacterPositions.Length; ++i)
+            {
+                {
+                    var (left, right, position) = bodyCharacterPositions[i];
+                    if (left == right)
+                    {
+                        continue;
+                    }
+                }
+
+                var rubyIndex = System.Array.FindIndex(rubies, _ => _.bodyStringRange.start <= i && i < _.bodyStringRange.end);
+                if (rubyIndex >= 0)
+                {
+                    var ruby = rubies[rubyIndex];
+                    var totalQuadCountUnderRuby = bodyCharacterPositions
+                        .Skip(ruby.bodyStringRange.start)
+                        .Take(ruby.bodyStringRange.length)
+                        .Count(_ => _.right != _.left);
+                    var currentQuadCountUnderRuby = bodyCharacterPositions
+                        .Skip(ruby.bodyStringRange.start)
+                        .Take(i - ruby.bodyStringRange.start + 1)
+                        .Count(_ => _.right != _.left);
+
+                    rubyLength = ruby.textLength * currentQuadCountUnderRuby / totalQuadCountUnderRuby + ruby.textPosition;
+                }
+                result.Add(rubyLength);
+            }
+
+            return result.Array;
+        }
+
         static RangeInt TrimRange(RangeInt original, RangeInt removeRange)
         {
             if (original.end <= removeRange.start)

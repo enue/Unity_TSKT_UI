@@ -70,6 +70,57 @@ IEnumerator Start()
 }
 ```
 
+### テキストを1文字ずつ表示する（フェードつき）
+
+```cs
+[SerializeField]
+RubyText ruby;
+
+[SerializeField]
+Text body;
+
+[SerializeField]
+TypingEffect rubyTypingEffect;
+
+[SerializeField]
+QuadByQuad bodyTypingEffect;
+
+IEnumerator Start()
+{
+    var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
+
+    var stringWithRuby = StringWithRuby.Parse(message)
+        .FoldTag()
+        .WrapWithHyphenation(body, new HyphenationJpns.Ruler())
+        .UnfoldTag();
+
+    ruby.Set(stringWithRuby);
+    body.text = stringWithRuby.body;
+    var bodyQuadCountRubyQuadCountMap = ruby.GetBodyQuadCountRubyQuadCountMap();
+    var duration = bodyTypingEffect.GetDuration(bodyQuadCountRubyQuadCountMap.Length - 1);
+
+    var startedTime = Time.time;
+    while (true)
+    {
+        var elapsedTime = Time.time - startedTime;
+
+        var visibleBodyQuadCount = Mathf.Clamp(
+            Mathf.FloorToInt(elapsedTime / bodyTypingEffect.delayPerQuad),
+            0,
+            bodyQuadCountRubyQuadCountMap.Length - 1);
+        rubyTypingEffect.VisibleQuadCount = bodyQuadCountRubyQuadCountMap[visibleBodyQuadCount];
+        bodyTypingEffect.ElapsedTime = elapsedTime;
+        if (elapsedTime > duration)
+        {
+            break;
+        }
+        yield return null;
+    }
+}
+```
+
+
+
 ## TextMeshProにルビを表示する
 
 + 本文用の`TextMeshPro`もしくは`TextMeshProUGUI`コンポーネントを作成する。
