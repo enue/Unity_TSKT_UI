@@ -153,7 +153,7 @@ namespace TSKT
             }
         }
 
-        bool[] GetCharacterHasQuadList()
+        bool[] GetBodyCharacterHasQuadList()
         {
             var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
@@ -305,7 +305,7 @@ namespace TSKT
 
         public int[] GetBodyQuadCountRubyQuadCountMap()
         {
-            var characterHasQuadList = GetCharacterHasQuadList();
+            var characterHasQuadList = GetBodyCharacterHasQuadList();
             return stringWithRuby.GetBodyQuadCountRubyQuadCountMap(characterHasQuadList);
         }
     }

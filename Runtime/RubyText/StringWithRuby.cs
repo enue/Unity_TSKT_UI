@@ -541,15 +541,15 @@ namespace TSKT
             return result;
         }
 
-        public int[] GetBodyQuadCountRubyQuadCountMap(bool[] characterHasQuadList)
+        public int[] GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList)
         {
-            var result = new ArrayBuilder<int>(characterHasQuadList.Count(_ => _) + 1);
+            var result = new ArrayBuilder<int>(bodyCharacterHasQuadList.Count(_ => _) + 1);
             result.Add(0);
 
             var rubyLength = 0;
-            for (int i = 0; i < characterHasQuadList.Length; ++i)
+            for (int i = 0; i < bodyCharacterHasQuadList.Length; ++i)
             {
-                if (!characterHasQuadList[i])
+                if (!bodyCharacterHasQuadList[i])
                 {
                     continue;
                 }
@@ -558,11 +558,11 @@ namespace TSKT
                 if (rubyIndex >= 0)
                 {
                     var ruby = rubies[rubyIndex];
-                    var totalQuadCountUnderRuby = characterHasQuadList
+                    var totalQuadCountUnderRuby = bodyCharacterHasQuadList
                         .Skip(ruby.bodyStringRange.start)
                         .Take(ruby.bodyStringRange.length)
                         .Count(_ => _);
-                    var currentQuadCountUnderRuby = characterHasQuadList
+                    var currentQuadCountUnderRuby = bodyCharacterHasQuadList
                         .Skip(ruby.bodyStringRange.start)
                         .Take(i - ruby.bodyStringRange.start + 1)
                         .Count(_ => _);

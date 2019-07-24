@@ -102,24 +102,15 @@ IEnumerator Start()
         .FoldTag()
         .WrapWithHyphenation(body, new HyphenationJpns.Ruler())
         .UnfoldTag();
-
-    ruby.Set(stringWithRuby);
-    body.text = stringWithRuby.body;
-    var bodyQuadCountRubyQuadCountMap = ruby.GetBodyQuadCountRubyQuadCountMap();
-    var duration = bodyTypingEffect.GetDuration(bodyQuadCountRubyQuadCountMap.Length - 1);
+    var typingEffect = new RubyTextTypingEffect(stringWithRuby, ruby, body, rubyTypingEffect, bodyTypingEffect);
 
     var startedTime = Time.time;
     while (true)
     {
         var elapsedTime = Time.time - startedTime;
+        typingEffect.Update(elapsedTime);
 
-        var visibleBodyQuadCount = Mathf.Clamp(
-            Mathf.FloorToInt(elapsedTime / bodyTypingEffect.delayPerQuad),
-            0,
-            bodyQuadCountRubyQuadCountMap.Length - 1);
-        rubyTypingEffect.VisibleQuadCount = bodyQuadCountRubyQuadCountMap[visibleBodyQuadCount];
-        bodyTypingEffect.ElapsedTime = elapsedTime;
-        if (elapsedTime > duration)
+        if (elapsedTime > typingEffect.duration)
         {
             break;
         }
