@@ -8,7 +8,7 @@ using System.Linq;
 namespace TSKT
 {
     [RequireComponent(typeof(TMPro.TMP_Text))]
-    public class TMP_RubyText : MonoBehaviour
+    public class TMP_RubyText : TMP_BaseMeshEffect
     {
         public const int VertexCountPerQuad = 4;
 
@@ -30,36 +30,22 @@ namespace TSKT
         [SerializeField]
         float boundsWidthDelta = 0f;
 
-        [SerializeField]
-        bool forceRefresh = default;
-
         StringWithRuby stringWithRuby;
-
-        List<Vector3> vertexBuffer;
 
         public void Set(StringWithRuby stringWithRuby)
         {
             Text.text = stringWithRuby.joinedRubyText;
             this.stringWithRuby = stringWithRuby;
-
-            ModifyMesh();
         }
 
-        void Update()
+        public override void Modify(ref List<Vector3> vertices, ref List<Color> colors)
         {
-            if (forceRefresh)
-            {
-                ModifyMesh();
-            }
-        }
-
-        void ModifyMesh()
-        {
-            if (!gameObject.activeInHierarchy)
+            if (!isActiveAndEnabled)
             {
                 return;
             }
-            if (stringWithRuby.rubies.Length == 0)
+            if (stringWithRuby.rubies == null
+                || stringWithRuby.rubies.Length == 0)
             {
                 return;
             }
@@ -68,14 +54,6 @@ namespace TSKT
             {
                 return;
             }
-
-            Text.ForceMeshUpdate();
-            var mesh = Text.mesh;
-            if (vertexBuffer == null)
-            {
-                vertexBuffer = new List<Vector3>();
-            }
-            mesh.GetVertices(vertexBuffer);
 
             foreach (var ruby in stringWithRuby.rubies)
             {
@@ -132,13 +110,9 @@ namespace TSKT
 
                     var rubyIndex = ruby.textPosition + splitRubyLength * i;
 
-                    ModifyRubyPosition(vertexBuffer, rubyIndex, currentRubyLength, bodyBounds);
+                    ModifyRubyPosition(vertices, rubyIndex, currentRubyLength, bodyBounds);
                 }
             }
-
-            mesh.SetVertices(vertexBuffer);
-
-            Text.UpdateGeometry(mesh, 0);
         }
 
         void ModifyRubyPosition(List<Vector3> rubyVertices,
@@ -261,10 +235,13 @@ namespace TSKT
             for (int i = 0; i < textInfo.characterCount; ++i)
             {
                 var it = textInfo.characterInfo[i];
-                result[it.index] = (
-                    it.topLeft.x,
-                    it.topRight.x,
-                    it.topLeft.y);
+                if (it.isVisible)
+                {
+                    result[it.index] = (
+                        it.topLeft.x,
+                        it.topRight.x,
+                        it.topLeft.y);
+                }
             }
             return true;
         }
@@ -283,7 +260,7 @@ namespace TSKT
             for (int i = 0; i < textInfo.characterCount; ++i)
             {
                 var it = textInfo.characterInfo[i];
-                result[i] = it.topLeft.x != it.topRight.x;
+                result[it.index] = it.isVisible;
             }
             return true;
         }

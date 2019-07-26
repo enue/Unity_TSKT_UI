@@ -6,35 +6,20 @@ using TMPro;
 
 namespace TSKT
 {
-    [RequireComponent(typeof(TMP_Text))]
-    public abstract class TMP_QuadByQuad : MonoBehaviour
+    public abstract class TMP_QuadByQuad : TMP_BaseMeshEffect
     {
         const int VertexCountPerQuad = 4;
 
         public float delayPerQuad = 0.1f;
         public float durationPerQuad = 0.4f;
         public bool rightToLeft = false;
+
         public bool autoPlay = false;
+        public bool loop = false;
 
-        [SerializeField]
-        float elapsedTime = 0f;
-        public float ElapsedTime
-        {
-            get => elapsedTime;
-            set
-            {
-                elapsedTime = value;
-                Refresh();
-            }
-        }
-
-        TMP_Text text;
-        TMP_Text Text => text ?? (text = GetComponent<TMP_Text>());
+        public float elapsedTime = 0f;
 
         float? startedTime;
-
-        List<Color> colors = new List<Color>();
-        List<Vector3> vertices = new List<Vector3>();
 
         void Update()
         {
@@ -44,48 +29,43 @@ namespace TSKT
                 {
                     startedTime = Time.time;
                 }
-                ElapsedTime = Time.time - startedTime.Value;
+                elapsedTime = Time.time - startedTime.Value;
             }
         }
-
-        protected abstract void ModifyQuad(ref List<Vector3> vertices, ref List<Color> colors, int startIndex, int count, float normalizedTime);
 
         public float GetDuration(int quadCount)
         {
             return QuadByQuad.GetDuration(quadCount, delayPerQuad, durationPerQuad);
         }
 
-        void Refresh()
+        public override void Modify(ref List<Vector3> vertices, ref List<Color> colors)
         {
-            Text.ForceMeshUpdate();
-            var mesh = Text.mesh;
-            mesh.GetVertices(vertices);
-            mesh.GetColors(colors);
-
-            var quadCount = vertices.Count / VertexCountPerQuad;
-            if (ElapsedTime > GetDuration(quadCount))
+            if (!isActiveAndEnabled)
             {
                 return;
             }
+            var quadCount = vertices.Count / VertexCountPerQuad;
 
-            for (int i = 0; i < quadCount; ++i)
+            var time = elapsedTime;
+            if (loop)
             {
-                var normalizedTime = QuadByQuad.GetNormalizedTime(quadIndex: i,
-                    quadCount: quadCount,
-                    delayPerQuad: delayPerQuad,
-                    elapsedTime: elapsedTime,
-                    durationPerQuad: durationPerQuad,
-                    rightToLeft: rightToLeft);
-                if (normalizedTime < 1f)
-                {
-                    ModifyQuad(ref vertices, ref colors, i * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
-                }
+                time %= GetDuration(quadCount);
             }
 
-            mesh.SetVertices(vertices);
-            mesh.SetColors(colors);
+            for (int quadIndex = 0; quadIndex < quadCount; ++quadIndex)
+            {
+                var normalizedTime = QuadByQuad.GetNormalizedTime(
+                    quadIndex: quadIndex,
+                    quadCount: quadCount,
+                    delayPerQuad: delayPerQuad,
+                    elapsedTime: time,
+                    durationPerQuad: durationPerQuad,
+                    rightToLeft: rightToLeft);
 
-            Text.UpdateGeometry(mesh, 0);
+                ModifyQuad(ref vertices, ref colors, quadIndex * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
+            }
         }
+
+        protected abstract void ModifyQuad(ref List<Vector3> vertices, ref List<Color> colors, int startIndex, int count, float normalizedTime);
     }
 }

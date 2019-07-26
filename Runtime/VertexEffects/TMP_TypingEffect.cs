@@ -6,33 +6,14 @@ using UnityEngine.UI;
 
 namespace TSKT
 {
-    public class TMP_TypingEffect : MonoBehaviour
+    public class TMP_TypingEffect : TMP_BaseMeshEffect
     {
         const int VertexCountPerQuad = 4;
 
-        [SerializeField]
-        int visibleQuadCount = 0;
-        public int VisibleQuadCount
+        public int visibleQuadCount = 0;
+
+        public override void Modify(ref List<Vector3> vertices, ref List<Color> colors)
         {
-            get => visibleQuadCount;
-            set
-            {
-                visibleQuadCount = value;
-                Refresh();
-            }
-        }
-
-        TMP_Text text;
-        TMP_Text Text => text ?? (text = GetComponent<TMP_Text>());
-
-        readonly List<Color> colors = new List<Color>();
-
-        void Refresh()
-        {
-            Text.ForceMeshUpdate();
-            var mesh = Text.mesh;
-            mesh.GetColors(colors);
-
             var quadCount = colors.Count / VertexCountPerQuad;
 
             for (int i = 0; i < quadCount; ++i)
@@ -47,9 +28,6 @@ namespace TSKT
                     }
                 }
             }
-            mesh.SetColors(colors);
-
-            Text.UpdateGeometry(mesh, 0);
         }
     }
 }
