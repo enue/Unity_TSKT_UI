@@ -163,4 +163,50 @@ IEnumerator Start()
 }
 ```
 
+### テキストを1文字ずつ表示する（フェードつき）
+
++ 本文用の`TextMeshPro`もしくは`TextMeshProUGUI`コンポーネントを作成する。
+    + 本文用のオブジェクトに`TMP_FadeInQuadByQuad`をアタッチする
++ ルビ用の`TextMeshPro`もしくは`TextMeshProUGUI`コンポーネントを作成する
+    + ルビ用のオブジェクトに`TMP_RubyText`をアタッチする。
+        + `TMP_RubyText`は↑の本文用オブジェクトを参照しておく。
+    + ルビ用のオブジェクトに`TMP_TypingEffect`をアタッチする
++ 二つのオブジェクトのrectは一致させておく。（ルビと本文は親子関係ににしとくのが自然でしょう）
++ コード実行
+
+```cs
+[SerializeField]
+TMP_RubyText ruby;
+
+[SerializeField]
+TMP_Text body;
+
+[SerializeField]
+TMP_TypingEffect rubyTypingEffect;
+
+[SerializeField]
+TMP_QuadByQuad bodyTypingEffect;
+
+IEnumerator Start()
+{
+    var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
+
+    var stringWithRuby = StringWithRuby.Parse(message);
+    var typingEffect = new TMP_RubyTextTypingEffect(stringWithRuby, ruby, body, rubyTypingEffect, bodyTypingEffect);
+
+    var startedTime = Time.time;
+    while (true)
+    {
+        var elapsedTime = Time.time - startedTime;
+        typingEffect.Update(elapsedTime);
+
+        if (elapsedTime > typingEffect.duration)
+        {
+            break;
+        }
+        yield return null;
+    }
+}
+
+```
 
