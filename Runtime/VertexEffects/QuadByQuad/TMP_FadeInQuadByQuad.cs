@@ -9,6 +9,11 @@ namespace TSKT
     {
         protected override void ModifyQuad(ref List<Vector3> vertices, ref List<Color> colors, int startIndex, int count, float normalizedTime)
         {
+            if (normalizedTime >= 1f)
+            {
+                return;
+            }
+
             for (int i = 0; i < count; ++i)
             {
                 var index = i + startIndex;

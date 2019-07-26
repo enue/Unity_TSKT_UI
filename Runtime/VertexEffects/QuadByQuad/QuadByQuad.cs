@@ -53,10 +53,6 @@ namespace TSKT
             }
 
             var quadCount = vh.currentVertCount / VertexCountPerQuad;
-            if (elapsedTime > GetDuration(quadCount))
-            {
-                return;
-            }
 
             for (int i = 0; i < quadCount; ++i)
             {
@@ -66,10 +62,7 @@ namespace TSKT
                     elapsedTime: elapsedTime,
                     durationPerQuad: durationPerQuad,
                     rightToLeft: rightToLeft);
-                if (normalizedTime < 1f)
-                {
-                    ModifyQuad(vh, i * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
-                }
+                ModifyQuad(vh, i * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
             }
         }
 

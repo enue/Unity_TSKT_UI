@@ -9,6 +9,11 @@ namespace TSKT
     {
         protected override void ModifyQuad(VertexHelper vh, int startIndex, int count, float normalizedTime)
         {
+            if (normalizedTime >= 1f)
+            {
+                return;
+            }
+
             UIVertex vertex = default;
             for (int i = 0; i < count; ++i)
             {

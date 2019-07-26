@@ -12,6 +12,15 @@ namespace TSKT
 
         protected override void ModifyQuad(VertexHelper vh, int startIndex, int count, float normalizedTime)
         {
+            if (normalizedTime >= 1f)
+            {
+                return;
+            }
+            if (normalizedTime <= 0f)
+            {
+                return;
+            }
+
             var h = normalizedTime * (1f - normalizedTime) * 4f * height;
 
             UIVertex vertex = default;
@@ -19,15 +28,7 @@ namespace TSKT
             {
                 var index = startIndex + i;
                 vh.PopulateUIVertex(ref vertex, index);
-
-                if (normalizedTime <= 0f)
-                {
-                    vertex.color = Color.clear;
-                }
-                else
-                {
-                    vertex.position += new Vector3(0f, h, 0f);
-                }
+                vertex.position += new Vector3(0f, h, 0f);
                 vh.SetUIVertex(vertex, index);
             }
         }
