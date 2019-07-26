@@ -8,31 +8,43 @@ namespace TSKT
     public readonly struct RubyTextTypingEffect
     {
         readonly TypingEffect rubyTypingEffect;
-        readonly QuadByQuad bodyTypingEffect;
+        readonly QuadByQuad[] bodyTypingEffects;
         readonly int[] bodyQuadCountRubyQuadCountMap;
         readonly public float duration;
 
-        public RubyTextTypingEffect(StringWithRuby text, RubyText ruby, Text body, TypingEffect rubyTypingEffect, QuadByQuad bodyTypingEffect)
+        public RubyTextTypingEffect(StringWithRuby text, RubyText ruby, Text body, TypingEffect rubyTypingEffect,
+            params QuadByQuad[] bodyTypingEffects)
         {
             this.rubyTypingEffect = rubyTypingEffect;
-            this.bodyTypingEffect = bodyTypingEffect;
+            this.bodyTypingEffects = bodyTypingEffects;
 
             ruby.Set(text);
             body.text = text.body;
             bodyQuadCountRubyQuadCountMap = ruby.GetBodyQuadCountRubyQuadCountMap();
-            duration = bodyTypingEffect.GetDuration(bodyQuadCountRubyQuadCountMap.Length - 1);
+            duration = bodyTypingEffects[0].GetDuration(bodyQuadCountRubyQuadCountMap.Length - 1);
 
             Update(0f);
         }
 
         public void Update(float elapsedTime)
         {
-            bodyTypingEffect.ElapsedTime = elapsedTime;
+            foreach (var it in bodyTypingEffects)
+            {
+                it.ElapsedTime = elapsedTime;
+            }
 
-            var visibleBodyQuadCount = Mathf.Clamp(
-               Mathf.FloorToInt(elapsedTime / bodyTypingEffect.delayPerQuad),
-               0,
-               bodyQuadCountRubyQuadCountMap.Length - 1);
+            int visibleBodyQuadCount;
+            if (bodyTypingEffects[0].delayPerQuad == 0f)
+            {
+                visibleBodyQuadCount = bodyQuadCountRubyQuadCountMap.Length - 1;
+            }
+            else
+            {
+                visibleBodyQuadCount = Mathf.Clamp(
+                   Mathf.FloorToInt(elapsedTime / bodyTypingEffects[0].delayPerQuad),
+                   0,
+                   bodyQuadCountRubyQuadCountMap.Length - 1);
+            }
             rubyTypingEffect.VisibleQuadCount = bodyQuadCountRubyQuadCountMap[visibleBodyQuadCount];
         }
     }
