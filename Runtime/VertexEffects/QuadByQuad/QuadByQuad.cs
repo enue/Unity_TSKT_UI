@@ -13,6 +13,7 @@ namespace TSKT
         public float durationPerQuad = 0.4f;
         public bool rightToLeft = false;
         public bool autoPlay = false;
+        public bool loop = false;
 
         [SerializeField]
         float elapsedTime = 0f;
@@ -54,12 +55,18 @@ namespace TSKT
 
             var quadCount = vh.currentVertCount / VertexCountPerQuad;
 
+            var time = elapsedTime;
+            if (loop)
+            {
+                time %= GetDuration(quadCount);
+            }
+
             for (int i = 0; i < quadCount; ++i)
             {
                 var normalizedTime = GetNormalizedTime(quadIndex: i,
                     quadCount: quadCount,
                     delayPerQuad: delayPerQuad,
-                    elapsedTime: elapsedTime,
+                    elapsedTime: time,
                     durationPerQuad: durationPerQuad,
                     rightToLeft: rightToLeft);
                 ModifyQuad(vh, i * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
