@@ -13,6 +13,6 @@ namespace TSKT
         TMP_Modifier modifier;
         public TMP_Modifier Modifier => modifier ?? (modifier = GetComponent<TMP_Modifier>());
 
-        public abstract void Modify(ref List<Vector3> vertices, ref List<Color> colors);
+        public abstract void Modify(TMP_VertexHelper vertexHelper);
     }
 }

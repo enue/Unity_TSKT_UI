@@ -10,7 +10,7 @@ namespace TSKT
         [SerializeField]
         float height = 8f;
 
-        protected override void ModifyQuad(ref List<Vector3> vertices, ref List<Color> colors, int startIndex, int count, float normalizedTime)
+        protected override void ModifyQuad(TMP_VertexHelper vertexHelper, int startIndex, int count, float normalizedTime)
         {
             if (normalizedTime >= 1f)
             {
@@ -27,7 +27,7 @@ namespace TSKT
             {
                 var index = startIndex + i;
 
-                vertices[index] += new Vector3(0f, h, 0f);
+                vertexHelper.Vertices[index] += new Vector3(0f, h, 0f);
             }
         }
     }

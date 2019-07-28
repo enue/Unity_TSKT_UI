@@ -12,9 +12,9 @@ namespace TSKT
 
         public int visibleQuadCount = 0;
 
-        public override void Modify(ref List<Vector3> vertices, ref List<Color> colors)
+        public override void Modify(TMP_VertexHelper vertexHelper)
         {
-            var quadCount = colors.Count / VertexCountPerQuad;
+            var quadCount = vertexHelper.Colors.Count / VertexCountPerQuad;
 
             for (int i = 0; i < quadCount; ++i)
             {
@@ -24,7 +24,7 @@ namespace TSKT
                     for(int j=0; j<VertexCountPerQuad; ++j)
                     {
                         var index = i * VertexCountPerQuad + j;
-                        colors[index] = Color.clear;
+                        vertexHelper.Colors[index] = Color.clear;
                     }
                 }
             }

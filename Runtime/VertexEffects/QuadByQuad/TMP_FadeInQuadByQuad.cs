@@ -7,7 +7,7 @@ namespace TSKT
 {
     public class TMP_FadeInQuadByQuad : TMP_QuadByQuad
     {
-        protected override void ModifyQuad(ref List<Vector3> vertices, ref List<Color> colors, int startIndex, int count, float normalizedTime)
+        protected override void ModifyQuad(TMP_VertexHelper vertexHelper, int startIndex, int count, float normalizedTime)
         {
             if (normalizedTime >= 1f)
             {
@@ -19,13 +19,13 @@ namespace TSKT
                 var index = i + startIndex;
                 if (normalizedTime <= 0f)
                 {
-                    colors[index] = Color.clear;
+                    vertexHelper.Colors[index] = Color.clear;
                 }
                 else
                 {
-                    var color = colors[index];
+                    var color = vertexHelper.Colors[index];
                     color.a = color.a * normalizedTime;
-                    colors[index] = color;
+                    vertexHelper.Colors[index] = color;
                 }
             }
         }

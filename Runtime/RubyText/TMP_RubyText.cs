@@ -38,7 +38,7 @@ namespace TSKT
             this.stringWithRuby = stringWithRuby;
         }
 
-        public override void Modify(ref List<Vector3> vertices, ref List<Color> colors)
+        public override void Modify(TMP_VertexHelper vertexHelper)
         {
             if (!isActiveAndEnabled)
             {
@@ -110,16 +110,16 @@ namespace TSKT
 
                     var rubyIndex = ruby.textPosition + splitRubyLength * i;
 
-                    ModifyRubyPosition(vertices, rubyIndex, currentRubyLength, bodyBounds);
+                    ModifyRubyPosition(vertexHelper, rubyIndex, currentRubyLength, bodyBounds);
                 }
             }
         }
 
-        void ModifyRubyPosition(List<Vector3> rubyVertices,
+        void ModifyRubyPosition(TMP_VertexHelper rubyVertices,
             int rubyIndex, int rubyLength,
             (float xMin, float xMax, float yMax) bodyBounds)
         {
-            var vertexCount = rubyVertices.Count;
+            var vertexCount = rubyVertices.Vertices.Count;
 
             float rubyBoundsLeft;
             float rubyBoundsRight;
@@ -142,8 +142,8 @@ namespace TSKT
                     for (int j = 0; j < VertexCountPerQuad; ++j)
                     {
                         var index = j + (i + rubyIndex) * VertexCountPerQuad;
-                        minX = Mathf.Min(minX, rubyVertices[index].x);
-                        maxX = Mathf.Max(maxX, rubyVertices[index].x);
+                        minX = Mathf.Min(minX, rubyVertices.Vertices[index].x);
+                        maxX = Mathf.Max(maxX, rubyVertices.Vertices[index].x);
                     }
                     var quadWidth = maxX - minX;
                     rubyWidth += quadWidth;
@@ -200,9 +200,9 @@ namespace TSKT
                 for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
                     var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    quadAverageY += rubyVertices[index].y;
-                    quadRight = Mathf.Max(quadRight, rubyVertices[index].x);
-                    quadLeft = Mathf.Min(quadLeft, rubyVertices[index].x);
+                    quadAverageY += rubyVertices.Vertices[index].y;
+                    quadRight = Mathf.Max(quadRight, rubyVertices.Vertices[index].x);
+                    quadLeft = Mathf.Min(quadLeft, rubyVertices.Vertices[index].x);
                 }
                 quadAverageY /= VertexCountPerQuad;
                 var fromPosition = new Vector2(quadLeft, quadAverageY);
@@ -211,10 +211,10 @@ namespace TSKT
                 for (int j = 0; j < VertexCountPerQuad; ++j)
                 {
                     var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    var vertex = rubyVertices[index];
+                    var vertex = rubyVertices.Vertices[index];
                     vertex.x += move.x;
                     vertex.y += move.y;
-                    rubyVertices[index] = vertex;
+                    rubyVertices.Vertices[index] = vertex;
                 }
 
                 position += (quadRight - quadLeft) * advance;

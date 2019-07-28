@@ -38,13 +38,13 @@ namespace TSKT
             return QuadByQuad.GetDuration(quadCount, delayPerQuad, durationPerQuad);
         }
 
-        public override void Modify(ref List<Vector3> vertices, ref List<Color> colors)
+        public override void Modify(TMP_VertexHelper vertexHelper)
         {
             if (!isActiveAndEnabled)
             {
                 return;
             }
-            var quadCount = vertices.Count / VertexCountPerQuad;
+            var quadCount = vertexHelper.Vertices.Count / VertexCountPerQuad;
 
             var time = elapsedTime;
             if (loop)
@@ -62,10 +62,10 @@ namespace TSKT
                     durationPerQuad: durationPerQuad,
                     rightToLeft: rightToLeft);
 
-                ModifyQuad(ref vertices, ref colors, quadIndex * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
+                ModifyQuad(vertexHelper, quadIndex * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
             }
         }
 
-        protected abstract void ModifyQuad(ref List<Vector3> vertices, ref List<Color> colors, int startIndex, int count, float normalizedTime);
+        protected abstract void ModifyQuad(TMP_VertexHelper vertexHelper, int startIndex, int count, float normalizedTime);
     }
 }

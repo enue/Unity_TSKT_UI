@@ -17,8 +17,8 @@ namespace TSKT
         TMP_BaseMeshEffect [] effects = null;
         TMP_BaseMeshEffect[] Effects => effects ?? (effects = GetComponents<TMP_BaseMeshEffect>());
 
-        List<Color> colors = new List<Color>();
-        List<Vector3> vertices = new List<Vector3>();
+        TMP_VertexHelper vertexHelper;
+        TMP_VertexHelper VertexHelper => vertexHelper ?? (vertexHelper = new TMP_VertexHelper(Text));
 
         void LateUpdate()
         {
@@ -35,20 +35,12 @@ namespace TSKT
                 return;
             }
 
-            Text.ForceMeshUpdate();
-            var mesh = Text.mesh;
-            mesh.GetVertices(vertices);
-            mesh.GetColors(colors);
-
             foreach (var it in Effects)
             {
-                it.Modify(ref vertices, ref colors);
+                it.Modify(VertexHelper);
             }
 
-            mesh.SetVertices(vertices);
-            mesh.SetColors(colors);
-
-            Text.UpdateGeometry(mesh, 0);
+            vertexHelper.Consume();
         }
     }
 }
