@@ -427,7 +427,7 @@ namespace TSKT
                     }
                 }
 
-                UnityEngine.Assertions.Assert.AreEqual(0, dict.Sum(_ => _.Value.Count), "invalid tag : " + body);
+                Debug.Assert(dict.Sum(_ => _.Value.Count) == 0, "invalid tag : " + body);
             }
 
             // bodyからtag文字列を削除

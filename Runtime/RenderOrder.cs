@@ -55,8 +55,8 @@ namespace TSKT
             }
 
             // worldは考えない
-            UnityEngine.Assertions.Assert.AreNotEqual(RenderMode.WorldSpace, x.renderMode, "wrong renderMode");
-            UnityEngine.Assertions.Assert.AreNotEqual(RenderMode.WorldSpace, y.renderMode, "wrong renderMode");
+            Debug.Assert(x.renderMode != RenderMode.WorldSpace, "wrong renderMode");
+            Debug.Assert(y.renderMode != RenderMode.WorldSpace, "wrong renderMode");
 
             // ScreenSpaceOverlay のほうが ScreenSpaceCameraより手前
             if (x.renderMode != y.renderMode)
@@ -122,7 +122,7 @@ namespace TSKT
                 }
             }
             // 同じ設定になっている場合は判断できない。
-            UnityEngine.Assertions.Assert.IsTrue(false, "can't determine comparing " + x.name + " and " + y.name);
+            Debug.Assert(false, "can't determine comparing " + x.name + " and " + y.name);
 
             // とりあえずInstaneIDでごまかす
             var xInstanceID = x.GetInstanceID();

@@ -103,7 +103,7 @@ namespace TSKT.HyphenationJpns
                 characterWidthCache.Clear();
             }
             var foundInfo = font.GetCharacterInfo(character, out var info, fontSize, fontStyle);
-            UnityEngine.Assertions.Assert.IsTrue(foundInfo, "not found character info : " + character);
+            Debug.Assert(foundInfo, "not found character info : " + character);
 
             characterWidthCache.Add(character, info.advance);
             return info.advance;
