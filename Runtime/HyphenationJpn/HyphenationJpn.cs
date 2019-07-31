@@ -32,11 +32,13 @@ namespace TSKT
             UpdateText(text);
         }
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             base.OnValidate();
             UpdateText(text);
         }
+#endif
 
         void UpdateText(string str)
         {
