@@ -51,7 +51,7 @@ namespace TSKT
             this.tags = tags ?? System.Array.Empty<Tag>();
         }
 
-        public static StringWithRuby Combine(StringWithRuby left, StringWithRuby right)
+        public static StringWithRuby Combine(in StringWithRuby left, in StringWithRuby right)
         {
             Ruby[] newRubies;
 
@@ -226,7 +226,7 @@ namespace TSKT
             return new StringWithRuby(body, newRubies, newRubyText, tags);
         }
 
-        public StringWithRuby Insert(int startIndex, StringWithRuby value)
+        public StringWithRuby Insert(int startIndex, in StringWithRuby value)
         {
             var newBody = body.Insert(startIndex, value.body);
 

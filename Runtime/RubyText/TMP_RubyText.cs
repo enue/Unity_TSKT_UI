@@ -32,7 +32,7 @@ namespace TSKT
 
         StringWithRuby stringWithRuby;
 
-        public void Set(StringWithRuby stringWithRuby)
+        public void Set(in StringWithRuby stringWithRuby)
         {
             Text.text = stringWithRuby.joinedRubyText;
             this.stringWithRuby = stringWithRuby;
