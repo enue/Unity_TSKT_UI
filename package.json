@@ -8,6 +8,7 @@
     "category": "",
     "dependencies": {
         "com.github.enue.tskt_container": "0.4.0",
+        "com.github.enue.tskt_tween": "0.0.1",
         "com.unity.textmeshpro": "2.0.1"
     }
 }

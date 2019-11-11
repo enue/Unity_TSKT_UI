@@ -2,9 +2,9 @@
     "name": "TSKT.UI",
     "references": [
         "TSKTContainer",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "TSKT.Tween"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

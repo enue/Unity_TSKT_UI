@@ -16,6 +16,7 @@ Packages/manifest.json
   "dependencies": {
     "com.github.enue.tskt_ui": "https://github.com/enue/Unity_TSKT_UI.git",
     "com.github.enue.tskt_container": "https://github.com/enue/Unity_TSKT_Container.git",
+    "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git",
   }
 }
 ```
