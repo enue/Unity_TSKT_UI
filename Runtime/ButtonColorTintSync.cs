@@ -60,12 +60,18 @@ namespace TSKT
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            isPointerDown = false;
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                isPointerDown = false;
+            }
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            isPointerDown = true;
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                isPointerDown = true;
+            }
         }
 
         public void OnPointerEnter(PointerEventData eventData)
