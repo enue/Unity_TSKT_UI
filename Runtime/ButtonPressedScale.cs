@@ -13,12 +13,15 @@ namespace TSKT
         [SerializeField]
         Vector3 scale = new Vector3(0.9f, 0.9f, 0.9f);
 
+        [SerializeField]
+        float tweenDuration = 0.1f;
+
         public void OnPointerUp(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
                 tween?.Halt();
-                tween = Tween.Scale(gameObject, 0.1f, scaledTime: false)
+                tween = Tween.Scale(gameObject, tweenDuration, scaledTime: false)
                     .To(Vector3.one);
             }
         }
@@ -28,7 +31,7 @@ namespace TSKT
             if (eventData.button == PointerEventData.InputButton.Left)
             {
                 tween?.Halt();
-                tween = Tween.Scale(gameObject, 0.1f, scaledTime: false)
+                tween = Tween.Scale(gameObject, tweenDuration, scaledTime: false)
                     .To(scale);
             }
         }
