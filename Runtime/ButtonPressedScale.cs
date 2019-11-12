@@ -6,8 +6,13 @@ using UnityEngine.EventSystems;
 
 namespace TSKT
 {
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(Button))]
     public class ButtonPressedScale : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
+        Button button;
+        Button Button => button ?? (button = GetComponent<Button>());
+
         Tweens.Scale tween;
 
         [SerializeField]
@@ -28,7 +33,9 @@ namespace TSKT
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (eventData.button == PointerEventData.InputButton.Left)
+            if (eventData.button == PointerEventData.InputButton.Left
+                && Button.interactable
+                && Button.isActiveAndEnabled)
             {
                 tween?.Halt();
                 tween = Tween.Scale(gameObject, tweenDuration, scaledTime: false)
