@@ -442,7 +442,17 @@ namespace TSKT
                 return new StringWithRuby(body, rubies, joinedRubyText);
             }
 
-            var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tags.Length * 2);
+            var tagCount = 0;
+            foreach(var it in tags)
+            {
+                ++tagCount;
+                if (it.right != null)
+                {
+                    ++tagCount;
+                }
+            }
+
+            var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tagCount);
             for (int i = 0; i < tags.Length; ++i)
             {
                 var tag = tags[i];

@@ -231,6 +231,7 @@ namespace TSKT.Tests
         [TestCase("hoge>", "hoge>", "hoge>")]
         [TestCase("<hoge", "<hoge", "<hoge")]
         [TestCase("<color=red>hoge</color>", "hoge", "<color=red>hoge</color>")]
+        [TestCase("<space=1em>hoge", "hoge", "<space=1em>hoge")]
         public void ToStringWithRuby(string originalString, string body, string taggedBody)
         {
             var text = TSKT.RichTextBuilder.Parse(originalString);
