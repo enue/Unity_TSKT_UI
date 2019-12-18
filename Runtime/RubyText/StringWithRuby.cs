@@ -227,7 +227,8 @@ namespace TSKT
                     new RangeInt(it.leftIndex, it.rightIndex - it.leftIndex),
                     removeRange);
 
-                if (range.length > 0)
+                // 対象範囲がゼロになったタグは削除。ただしもともと閉じタグがない場合は残す。
+                if (range.length > 0 || it.right == null)
                 {
                     newTags.Add(new Tag(
                             range.start, it.left,
@@ -446,7 +447,10 @@ namespace TSKT
             {
                 var tag = tags[i];
                 tagElements.Add((tag.leftIndex, tag.left, subSort: -i));
-                tagElements.Add((tag.rightIndex, tag.right, subSort: i));
+                if (tag.right != null)
+                {
+                    tagElements.Add((tag.rightIndex, tag.right, subSort: i));
+                }
             }
 
             var sortedTags = tagElements.Array
@@ -475,6 +479,7 @@ namespace TSKT
         {
             var tagRanges = new List<RangeInt>();
             var tagElements = new List<(string name, string value, bool closing)>();
+            var tagPairCount = 0;
             {
                 var position = 0;
                 while (true)
@@ -508,6 +513,7 @@ namespace TSKT
                     {
                         tagName = head;
                         closingTag = false;
+                        ++tagPairCount;
                     }
 
                     tagElements.Add((
@@ -522,7 +528,7 @@ namespace TSKT
                 return new RichTextBuilder(body, rubies, joinedRubyText, null);
             }
 
-            var pairTags = new ArrayBuilder<Tag>(tagElements.Count / 2);
+            var pairTags = new ArrayBuilder<Tag>(tagPairCount);
             {
                 var positionOffset = 0;
                 var dict = new Dictionary<string, Stack<(string tagValue, int position)>>();
@@ -553,7 +559,16 @@ namespace TSKT
                     }
                 }
 
-                Debug.Assert(dict.Sum(_ => _.Value.Count) == 0, "invalid tag : " + body);
+                // 閉じタグがみつからない場合は開始タグ単独で登録。
+                // ちなみに閉じタグがない場合、UnityUIは無効なのに対してTextMeshProは有効。
+                // UnityUIだとおそらくデータミスなので無視して、TMPにあわせておく。
+                foreach (var it in dict)
+                {
+                    foreach(var (tagValue, position) in it.Value)
+                    {
+                        pairTags.Add(new Tag(position, tagValue, position, null));
+                    }
+                }
             }
 
             // bodyからtag文字列を削除
