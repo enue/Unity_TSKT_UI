@@ -40,7 +40,7 @@ Text body;
 void Start()
 {
     var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
-    var stringWithRuby = StringWithRuby.Parse(message);
+    var stringWithRuby = RichTextBuilder.Parse(message).ToStringWithRuby();
     ruby.Set(stringWithRuby);
     body.text = stringWithRuby.body;
 }
@@ -52,17 +52,16 @@ void Start()
 IEnumerator Start()
 {
     var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
-    var stringWithRuby = StringWithRuby.Parse(message)
-        .FoldTag()
+    var text = RichTextBuilder.Parse(message)
         .WrapWithHyphenation(body, new HyphenationJpns.Ruler());
 
-    for (int i = 0; i < stringWithRuby.body.Length; ++i)
+    for (int i = 0; i < text.body.Length; ++i)
     {
-        if (stringWithRuby.body[i] == '\n')
+        if (text.body[i] == '\n')
         {
             continue;
         }
-        var sub = stringWithRuby.Substring(0, i).UnfoldTag();
+        var sub = text.Substring(0, i).ToStringWithRuby();
         ruby.Set(sub);
         body.text = sub.body;
 
@@ -99,10 +98,9 @@ IEnumerator Start()
 {
     var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
 
-    var stringWithRuby = StringWithRuby.Parse(message)
-        .FoldTag()
+    var stringWithRuby = RichTextBuilder.Parse(message)
         .WrapWithHyphenation(body, new HyphenationJpns.Ruler())
-        .UnfoldTag();
+        .ToStringWithRuby();
     var typingEffect = new RubyTextTypingEffect(stringWithRuby, ruby, body, rubyTypingEffect, bodyTypingEffect);
 
     var startedTime = Time.time;
@@ -139,7 +137,7 @@ TMPro.TMP_Text body;
 void Start()
 {
     var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
-    var stringWithRuby = StringWithRuby.Parse(message);
+    var stringWithRuby = RichTextBuilder.Parse(message).ToStringWithRuby();
     ruby.Set(stringWithRuby);
     body.text = stringWithRuby.body;
 }
@@ -151,11 +149,11 @@ void Start()
 IEnumerator Start()
 {
     var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
-    var stringWithRuby = StringWithRuby.Parse(message).FoldTag();
+    var text = RichTextBuilder.Parse(message);
 
-    for (int i = 0; i < stringWithRuby.body.Length; ++i)
+    for (int i = 0; i < text.body.Length; ++i)
     {
-        var sub = stringWithRuby.Substring(0, i).UnfoldTag();
+        var sub = text.Substring(0, i).ToStringWithRuby();
         ruby.Set(sub);
         body.text = sub.body;
 
@@ -192,7 +190,7 @@ IEnumerator Start()
 {
     var message = "{吾輩:わがはい}は猫である。<color=red>名前はまだ無い</color>。\nどこで生れたかとんと{見<color=red>当:けんとう}がつか</color>ぬ。何でも薄暗いじめじめした所で<color=red>ニャーニャー</color>泣いていた事だけは記憶している。";
 
-    var stringWithRuby = StringWithRuby.Parse(message);
+    var stringWithRuby = RichTextBuilder.Parse(message).ToStringWithRuby();
     var typingEffect = new TMP_RubyTextTypingEffect(stringWithRuby, ruby, body, rubyTypingEffect, bodyTypingEffect);
 
     var startedTime = Time.time;

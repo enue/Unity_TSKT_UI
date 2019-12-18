@@ -5,22 +5,111 @@ using System.Linq;
 
 namespace TSKT
 {
+    public readonly struct Ruby
+    {
+        readonly public int textPosition;
+        readonly public int textLength;
+        readonly public RangeInt bodyStringRange;
+
+        public Ruby(int textPosition, int textLength, RangeInt bodyStringRange)
+        {
+            this.textPosition = textPosition;
+            this.textLength = textLength;
+            this.bodyStringRange = bodyStringRange;
+        }
+    }
+
     public readonly struct StringWithRuby
     {
-        public readonly struct Ruby
-        {
-            readonly public int textPosition;
-            readonly public int textLength;
-            readonly public RangeInt bodyStringRange;
+        public readonly Ruby[] rubies;
+        public readonly string joinedRubyText;
+        public readonly string body;
 
-            public Ruby(int textPosition, int textLength, RangeInt bodyStringRange)
-            {
-                this.textPosition = textPosition;
-                this.textLength = textLength;
-                this.bodyStringRange = bodyStringRange;
-            }
+        public StringWithRuby(string body, Ruby[] rubies, string joinedRubyText)
+        {
+            this.body = body ?? string.Empty;
+            this.rubies = rubies ?? System.Array.Empty<Ruby>();
+            this.joinedRubyText = joinedRubyText ?? string.Empty;
         }
 
+        public static StringWithRuby Parse(string originalText)
+        {
+            var rubies = new List<Ruby>();
+            var bodyText = new System.Text.StringBuilder();
+            var rubyText = new System.Text.StringBuilder();
+
+            var currentIndex = 0;
+            while (true)
+            {
+                var beginIndex = originalText.IndexOf('{', currentIndex);
+                if (beginIndex < 0)
+                {
+                    if (rubies.Count == 0)
+                    {
+                        return new StringWithRuby(originalText, System.Array.Empty<Ruby>(), string.Empty);
+                    }
+                    bodyText.Append(originalText, currentIndex, originalText.Length - currentIndex);
+                    break;
+                }
+                var endIndex = originalText.IndexOf('}', beginIndex);
+
+                bodyText.Append(originalText, currentIndex, beginIndex - currentIndex);
+                currentIndex = endIndex + 1;
+
+                var attributes = originalText.Substring(beginIndex + 1, endIndex - beginIndex - 1).Split(':');
+                var body = attributes[0];
+                var ruby = attributes[1];
+
+                var word = new Ruby(
+                    textPosition: rubyText.Length,
+                    textLength: ruby.Length,
+                    bodyStringRange: new RangeInt(bodyText.Length, body.Length));
+                rubies.Add(word);
+
+                bodyText.Append(body);
+                rubyText.Append(ruby);
+            }
+
+            return new StringWithRuby(bodyText.ToString(), rubies.ToArray(), rubyText.ToString());
+        }
+
+        public int[] GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList)
+        {
+            var result = new ArrayBuilder<int>(bodyCharacterHasQuadList.Count(_ => _) + 1);
+            result.Add(0);
+
+            var rubyLength = 0;
+            for (int i = 0; i < bodyCharacterHasQuadList.Length; ++i)
+            {
+                if (!bodyCharacterHasQuadList[i])
+                {
+                    continue;
+                }
+
+                var rubyIndex = System.Array.FindIndex(rubies, _ => _.bodyStringRange.start <= i && i < _.bodyStringRange.end);
+                if (rubyIndex >= 0)
+                {
+                    var ruby = rubies[rubyIndex];
+                    var totalQuadCountUnderRuby = bodyCharacterHasQuadList
+                        .Skip(ruby.bodyStringRange.start)
+                        .Take(ruby.bodyStringRange.length)
+                        .Count(_ => _);
+                    var currentQuadCountUnderRuby = bodyCharacterHasQuadList
+                        .Skip(ruby.bodyStringRange.start)
+                        .Take(i - ruby.bodyStringRange.start + 1)
+                        .Count(_ => _);
+
+                    rubyLength = ruby.textLength * currentQuadCountUnderRuby / totalQuadCountUnderRuby + ruby.textPosition;
+                }
+                result.Add(rubyLength);
+            }
+
+            return result.Array;
+        }
+    }
+
+    public readonly struct RichTextBuilder
+    {
         public readonly struct Tag
         {
             readonly public int leftIndex;
@@ -43,15 +132,15 @@ namespace TSKT
         readonly public string body;
         readonly public Tag[] tags;
 
-        public StringWithRuby(string body, Ruby[] rubies, string joinedText, Tag[] tags)
+        public RichTextBuilder(string body, Ruby[] rubies, string joinedRubyText, Tag[] tags)
         {
             this.body = body ?? string.Empty;
             this.rubies = rubies ?? System.Array.Empty<Ruby>();
-            this.joinedRubyText = joinedText ?? string.Empty;
+            this.joinedRubyText = joinedRubyText ?? string.Empty;
             this.tags = tags ?? System.Array.Empty<Tag>();
         }
 
-        public static StringWithRuby Combine(in StringWithRuby left, in StringWithRuby right)
+        public static RichTextBuilder Combine(in RichTextBuilder left, in RichTextBuilder right)
         {
             Ruby[] newRubies;
 
@@ -63,12 +152,12 @@ namespace TSKT
             {
                 var rubyBuilder = new ArrayBuilder<Ruby>(left.rubies.Length + right.rubies.Length);
 
-                foreach(var it in left.rubies)
+                foreach (var it in left.rubies)
                 {
                     rubyBuilder.Add(it);
                 }
 
-                foreach(var it in right.rubies)
+                foreach (var it in right.rubies)
                 {
                     var ruby = new Ruby(
                         textPosition: it.textPosition + left.joinedRubyText.Length,
@@ -89,11 +178,11 @@ namespace TSKT
             else
             {
                 var tagBuilder = new ArrayBuilder<Tag>(left.tags.Length + right.tags.Length);
-                foreach(var it in left.tags)
+                foreach (var it in left.tags)
                 {
                     tagBuilder.Add(it);
                 }
-                foreach(var it in right.tags)
+                foreach (var it in right.tags)
                 {
                     var t = new Tag(
                         leftIndex: it.leftIndex + left.body.Length,
@@ -105,10 +194,10 @@ namespace TSKT
                 newTags = tagBuilder.Array;
             }
 
-            return new StringWithRuby(left.body + right.body, newRubies, left.joinedRubyText + right.joinedRubyText, newTags);
+            return new RichTextBuilder(left.body + right.body, newRubies, left.joinedRubyText + right.joinedRubyText, newTags);
         }
 
-        public StringWithRuby Remove(int startIndex, int count)
+        public RichTextBuilder Remove(int startIndex, int count)
         {
             var newBody = body.Remove(startIndex, count);
             var removeRange = new RangeInt(startIndex, count);
@@ -132,7 +221,7 @@ namespace TSKT
 
             // タグの移動
             var newTags = new List<Tag>(tags.Length);
-            foreach(var it in tags)
+            foreach (var it in tags)
             {
                 var range = TrimRange(
                     new RangeInt(it.leftIndex, it.rightIndex - it.leftIndex),
@@ -146,13 +235,13 @@ namespace TSKT
                 }
             }
 
-            return new StringWithRuby(newBody,
+            return new RichTextBuilder(newBody,
                 newRubies.ToArray(),
                 newJoinedRubyText.ToString(),
                 newTags.ToArray());
         }
 
-        public StringWithRuby Substring(int startIndex, int length)
+        public RichTextBuilder Substring(int startIndex, int length)
         {
             if (startIndex < 0
                 || length < 0
@@ -200,13 +289,13 @@ namespace TSKT
 
             var newBody = body.Substring(startIndex, length);
 
-            return new StringWithRuby(newBody, newRubies.ToArray(), newJoinedRubyText, newTags.ToArray());
+            return new RichTextBuilder(newBody, newRubies.ToArray(), newJoinedRubyText, newTags.ToArray());
         }
 
-        public StringWithRuby RemoveRubyAt(int index)
+        public RichTextBuilder RemoveRubyAt(int index)
         {
             var newRubies = new Ruby[rubies.Length - 1];
-            for(int i=0; i<rubies.Length; ++i)
+            for (int i = 0; i < rubies.Length; ++i)
             {
                 if (i < index)
                 {
@@ -223,10 +312,10 @@ namespace TSKT
 
             var newRubyText = joinedRubyText.Remove(rubies[index].textPosition, rubies[index].textLength);
 
-            return new StringWithRuby(body, newRubies, newRubyText, tags);
+            return new RichTextBuilder(body, newRubies, newRubyText, tags);
         }
 
-        public StringWithRuby Insert(int startIndex, in StringWithRuby value)
+        public RichTextBuilder Insert(int startIndex, in RichTextBuilder value)
         {
             var newBody = body.Insert(startIndex, value.body);
 
@@ -313,23 +402,23 @@ namespace TSKT
                     it.right));
             }
 
-            return new StringWithRuby(newBody, newRubies.Array, newRubyText.ToString(), newTags.Array);
+            return new RichTextBuilder(newBody, newRubies.Array, newRubyText.ToString(), newTags.Array);
         }
 
-        public StringWithRuby InsertTag(int leftIndex, string left, int rightIndex, string right)
+        public RichTextBuilder InsertTag(int leftIndex, string left, int rightIndex, string right)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + 1);
 
-            foreach(var it in tags)
+            foreach (var it in tags)
             {
                 tagBuilder.Add(it);
             }
             tagBuilder.Add(new Tag(leftIndex, left, rightIndex, right));
 
-            return new StringWithRuby(body, rubies, joinedRubyText, tagBuilder.Array);
+            return new RichTextBuilder(body, rubies, joinedRubyText, tagBuilder.Array);
         }
 
-        public StringWithRuby InsertTags(params Tag[] array)
+        public RichTextBuilder InsertTags(params Tag[] array)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + array.Length);
 
@@ -342,10 +431,47 @@ namespace TSKT
                 tagBuilder.Add(it);
             }
 
-            return new StringWithRuby(body, rubies, joinedRubyText, tagBuilder.Array);
+            return new RichTextBuilder(body, rubies, joinedRubyText, tagBuilder.Array);
         }
 
-        public StringWithRuby FoldTag()
+        public StringWithRuby ToStringWithRuby()
+        {
+            if (tags.Length == 0)
+            {
+                return new StringWithRuby(body, rubies, joinedRubyText);
+            }
+
+            var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tags.Length * 2);
+            for (int i = 0; i < tags.Length; ++i)
+            {
+                var tag = tags[i];
+                tagElements.Add((tag.leftIndex, tag.left, subSort: -i));
+                tagElements.Add((tag.rightIndex, tag.right, subSort: i));
+            }
+
+            var sortedTags = tagElements.Array
+                .OrderByDescending(_ => _.index)
+                .ThenByDescending(_ => _.subSort);
+
+            var result = this;
+            foreach (var (index, value, _) in sortedTags)
+            {
+                var tag = new RichTextBuilder(value, null, null, null);
+                result = result.Insert(index, tag);
+            }
+
+            return new StringWithRuby(result.body,
+                result.rubies,
+                result.joinedRubyText);
+        }
+
+        public static RichTextBuilder Parse(string originalText)
+        {
+            var stringWithRuby = StringWithRuby.Parse(originalText);
+            return Parse(stringWithRuby.body, stringWithRuby.rubies, stringWithRuby.joinedRubyText);
+        }
+
+        public static RichTextBuilder Parse(string body, Ruby[] rubies, string joinedRubyText)
         {
             var tagRanges = new List<RangeInt>();
             var tagElements = new List<(string name, string value, bool closing)>();
@@ -393,13 +519,13 @@ namespace TSKT
 
             if (tagElements.Count == 0)
             {
-                return this;
+                return new RichTextBuilder(body, rubies, joinedRubyText, null);
             }
 
             var pairTags = new ArrayBuilder<Tag>(tagElements.Count / 2);
             {
                 var positionOffset = 0;
-                var dict = new Dictionary<string, Stack<(string tagValue, int position)>> ();
+                var dict = new Dictionary<string, Stack<(string tagValue, int position)>>();
                 for (int i = 0; i < tagElements.Count; ++i)
                 {
                     var tag = tagElements[i];
@@ -431,7 +557,7 @@ namespace TSKT
             }
 
             // bodyからtag文字列を削除
-            var result = this;
+            var result = new RichTextBuilder(body, rubies, joinedRubyText, null);
             {
                 var removedRange = 0;
                 foreach (var range in tagRanges)
@@ -446,80 +572,7 @@ namespace TSKT
             return result;
         }
 
-        public StringWithRuby UnfoldTag()
-        {
-            if (tags.Length == 0)
-            {
-                return this;
-            }
-
-            var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tags.Length * 2);
-            for (int i = 0; i < tags.Length; ++i)
-            {
-                var tag = tags[i];
-                tagElements.Add((tag.leftIndex, tag.left, subSort: -i));
-                tagElements.Add((tag.rightIndex, tag.right, subSort: i));
-            }
-
-            var sortedTags = tagElements.Array
-                .OrderByDescending(_ => _.index)
-                .ThenByDescending(_ => _.subSort);
-
-            var result = this;
-            foreach (var (index, value, _) in sortedTags)
-            {
-                var tag = new StringWithRuby(value, null, null, null);
-                result = result.Insert(index, tag);
-            }
-
-            return new StringWithRuby(result.body,
-                result.rubies,
-                result.joinedRubyText,
-                null);
-        }
-
-        public static StringWithRuby Parse(string originalText)
-        {
-            var rubies = new List<Ruby>();
-            var bodyText = new System.Text.StringBuilder();
-            var rubyText = new System.Text.StringBuilder();
-
-            var currentIndex = 0;
-            while (true)
-            {
-                var beginIndex = originalText.IndexOf('{', currentIndex);
-                if (beginIndex < 0)
-                {
-                    if (rubies.Count == 0)
-                    {
-                        return new StringWithRuby(originalText, System.Array.Empty<Ruby>(), string.Empty, System.Array.Empty<Tag>());
-                    }
-                    bodyText.Append(originalText, currentIndex, originalText.Length - currentIndex);
-                    break;
-                }
-                var endIndex = originalText.IndexOf('}', beginIndex);
-
-                bodyText.Append(originalText, currentIndex, beginIndex - currentIndex);
-                currentIndex = endIndex + 1;
-
-                var attributes = originalText.Substring(beginIndex + 1, endIndex - beginIndex - 1).Split(':');
-                var body = attributes[0];
-                var ruby = attributes[1];
-
-                var word = new Ruby(
-                    textPosition: rubyText.Length,
-                    textLength: ruby.Length,
-                    bodyStringRange: new RangeInt(bodyText.Length, body.Length));
-                rubies.Add(word);
-
-                bodyText.Append(body);
-                rubyText.Append(ruby);
-            }
-
-            return new StringWithRuby(bodyText.ToString(), rubies.ToArray(), rubyText.ToString(), System.Array.Empty<Tag>());
-        }
-
-        public StringWithRuby WrapWithHyphenation(UnityEngine.UI.Text text, HyphenationJpns.Ruler ruler, bool allowSplitRuby = false)
+        public RichTextBuilder WrapWithHyphenation(UnityEngine.UI.Text text, HyphenationJpns.Ruler ruler, bool allowSplitRuby = false)
         {
             var newLinePositions = ruler.GetNewLinePositions(text.rectTransform.rect.width,
                 text.font,
@@ -532,47 +585,13 @@ namespace TSKT
             var result = this;
             if (newLinePositions.Count > 0)
             {
-                var newLine = new StringWithRuby("\n", null, null, null);
+                var newLine = new RichTextBuilder("\n", null, null, null);
                 for (int i = 0; i < newLinePositions.Count; ++i)
                 {
                     result = result.Insert(newLinePositions[i] + (i * newLine.body.Length), newLine);
                 }
             }
             return result;
-        }
-
-        public int[] GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList)
-        {
-            var result = new ArrayBuilder<int>(bodyCharacterHasQuadList.Count(_ => _) + 1);
-            result.Add(0);
-
-            var rubyLength = 0;
-            for (int i = 0; i < bodyCharacterHasQuadList.Length; ++i)
-            {
-                if (!bodyCharacterHasQuadList[i])
-                {
-                    continue;
-                }
-
-                var rubyIndex = System.Array.FindIndex(rubies, _ => _.bodyStringRange.start <= i && i < _.bodyStringRange.end);
-                if (rubyIndex >= 0)
-                {
-                    var ruby = rubies[rubyIndex];
-                    var totalQuadCountUnderRuby = bodyCharacterHasQuadList
-                        .Skip(ruby.bodyStringRange.start)
-                        .Take(ruby.bodyStringRange.length)
-                        .Count(_ => _);
-                    var currentQuadCountUnderRuby = bodyCharacterHasQuadList
-                        .Skip(ruby.bodyStringRange.start)
-                        .Take(i - ruby.bodyStringRange.start + 1)
-                        .Count(_ => _);
-
-                    rubyLength = ruby.textLength * currentQuadCountUnderRuby / totalQuadCountUnderRuby + ruby.textPosition;
-                }
-                result.Add(rubyLength);
-            }
-
-            return result.Array;
         }
 
         static RangeInt TrimRange(RangeInt original, RangeInt removeRange)
