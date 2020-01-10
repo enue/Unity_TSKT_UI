@@ -10,7 +10,34 @@ namespace TSKT.HyphenationJpns
 {
     public class Ruler
     {
+        public static class DefaultHyphenation
+        {
+            // 禁則処理 http://ja.wikipedia.org/wiki/%E7%A6%81%E5%89%87%E5%87%A6%E7%90%86
+            // 行頭禁則文字
+            public const string CharactersThatCanNotBeginLine =
+                (",)]｝、。）〕〉》」』】〙〗〟’”｠»" +// 終わり括弧類 簡易版
+                 "ァィゥェォッャュョヮヵヶっぁぃぅぇぉっゃゅょゎ" +//行頭禁則和字 
+                 "‐゠–〜ー" +//ハイフン類
+                 "?!！？‼⁇⁈⁉" +//区切り約物
+                 "・:;" +//中点類
+                 "。.");//句点類
+
+            public const string CharactersThatCanNotEndLine =
+                 "(（[｛〔〈《「『【〘〖〝‘“｟«";//始め括弧類
+
+            public const string UnbreakabkeSequenceCharacters =
+                ("abcdefghijklmnopqrstuvwxyz" +
+                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+                 "0123456789" +
+                 "<>=/().,#");
+        }
+
         readonly Dictionary<char, float> characterWidthCache = new Dictionary<char, float>();
+
+        public string CharactersThatCanNotBeginLine { get; set; } = DefaultHyphenation.CharactersThatCanNotBeginLine;
+        public string CharactersThatCanNotEndLine { get; set; } = DefaultHyphenation.CharactersThatCanNotEndLine;
+        public string UnbreakabkeSequenceCharacters { get; set; } = DefaultHyphenation.UnbreakabkeSequenceCharacters;
+
         Font cachedFont;
         int cachedFontSize;
         FontStyle cachedFontStyle;
@@ -241,10 +268,9 @@ namespace TSKT.HyphenationJpns
             return result;
         }
 
-        static IEnumerable<StringBuilder> GetWordList(string tmpText, RangeInt[] unsplittableRanges)
+        IEnumerable<StringBuilder> GetWordList(string tmpText, RangeInt[] unsplittableRanges)
         {
             var word = new StringBuilder();
-            var emptyChar = new char();
 
             for (int characterIndex = 0; characterIndex < tmpText.Length;)
             {
@@ -263,16 +289,14 @@ namespace TSKT.HyphenationJpns
                     }
                 }
 
-                var firstCharacter = tmpText[firstIndex];
                 var lastCharacter = tmpText[lastIndex];
-                char nextCharacter = (lastIndex < tmpText.Length - 1) ? tmpText[lastIndex + 1] : emptyChar;
-                char preCharacter = (firstIndex > 0) ? tmpText[firstIndex - 1] : emptyChar;
 
                 characterIndex = lastIndex + 1;
 
                 if (firstIndex == lastIndex)
                 {
                     // 改行コード単品は即処理
+                    var firstCharacter = tmpText[firstIndex];
                     if ((firstCharacter == '\n') && word.Length == 0)
                     {
                         word.Append(firstCharacter);
@@ -289,12 +313,33 @@ namespace TSKT.HyphenationJpns
                     word.Append(tmpText, firstIndex, lastIndex - firstIndex + 1);
                 }
 
-                if (((IsLatin(firstCharacter) && IsLatin(preCharacter)) && (IsLatin(firstCharacter) && !IsLatin(preCharacter)))
-                    || (!IsLatin(firstCharacter) && CHECK_HYP_BACK(preCharacter))
-                    || (!IsLatin(nextCharacter) && !CHECK_HYP_FRONT(nextCharacter) && !CHECK_HYP_BACK(lastCharacter)))
+                // 自分の後ろで改行していいかどうかの判定
+                if (lastIndex < tmpText.Length - 1)
                 {
-                    yield return word;
-                    word.Length = 0;
+                    var canEndLine = true;
+                    var nextCharacter = tmpText[lastIndex + 1];
+
+                    if (!CanBreakSequence(lastCharacter, nextCharacter))
+                    {
+                        // 分割禁止文字
+                        canEndLine = false;
+                    }
+                    else if (!CanEndLine(lastCharacter))
+                    {
+                        // 末尾が行末禁則文字
+                        canEndLine = false;
+                    }
+                    else if (!CanBeginLine(nextCharacter))
+                    {
+                        // 次の文字が行頭禁則文字
+                        canEndLine = false;
+                    }
+
+                    if (canEndLine)
+                    {
+                        yield return word;
+                        word.Length = 0;
+                    }
                 }
             }
             if (word.Length > 0)
@@ -303,45 +348,26 @@ namespace TSKT.HyphenationJpns
             }
         }
 
-        // static
-        private static readonly Regex RITCH_TEXT_REPLACE = new Regex(
+        public static readonly Regex RITCH_TEXT_REPLACE = new Regex(
             "(\\<color=.*?\\>|</color>|" +
             "\\<size=.n\\>|</size>|" +
             "<b>|</b>|" +
             "<i>|</i>)");
 
-        // 禁則処理 http://ja.wikipedia.org/wiki/%E7%A6%81%E5%89%87%E5%87%A6%E7%90%86
-        // 行頭禁則文字
-        private const string HYP_FRONT =
-            (",)]｝、。）〕〉》」』】〙〗〟’”｠»" +// 終わり括弧類 簡易版
-             "ァィゥェォッャュョヮヵヶっぁぃぅぇぉっゃゅょゎ" +//行頭禁則和字 
-             "‐゠–〜ー" +//ハイフン類
-             "?!！？‼⁇⁈⁉" +//区切り約物
-             "・:;" +//中点類
-             "。.");//句点類
-
-        private const string HYP_BACK =
-             "(（[｛〔〈《「『【〘〖〝‘“｟«";//始め括弧類
-
-        private const string HYP_LATIN =
-            ("abcdefghijklmnopqrstuvwxyz" +
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-             "0123456789" +
-             "<>=/().,#");
-
-        private static bool CHECK_HYP_FRONT(char str)
+        bool CanBeginLine(char str)
         {
-            return HYP_FRONT.IndexOf(str) >= 0;
+            return CharactersThatCanNotBeginLine.IndexOf(str) < 0;
         }
 
-        private static bool CHECK_HYP_BACK(char str)
+        bool CanEndLine(char str)
         {
-            return HYP_BACK.IndexOf(str) >= 0;
+            return CharactersThatCanNotEndLine.IndexOf(str) < 0;
         }
 
-        private static bool IsLatin(char s)
+        bool CanBreakSequence(char left, char right)
         {
-            return HYP_LATIN.IndexOf(s) >= 0;
+            return (UnbreakabkeSequenceCharacters.IndexOf(left) < 0)
+                || (UnbreakabkeSequenceCharacters.IndexOf(right) < 0);
         }
     }
 }
