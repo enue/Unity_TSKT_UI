@@ -28,7 +28,7 @@ namespace TSKT
         }
 
         Text text;
-        Text Text => text ?? (text = GetComponent<Text>());
+        Text Text => text ? text : (text = GetComponent<Text>());
 
         float? startedTime;
 

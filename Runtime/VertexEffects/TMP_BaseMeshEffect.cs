@@ -11,7 +11,7 @@ namespace TSKT
     public abstract class TMP_BaseMeshEffect : MonoBehaviour
     {
         TMP_Modifier modifier;
-        public TMP_Modifier Modifier => modifier ?? (modifier = GetComponent<TMP_Modifier>());
+        public TMP_Modifier Modifier => modifier ? modifier : (modifier = GetComponent<TMP_Modifier>());
 
         public abstract void Modify(TMP_VertexHelper vertexHelper);
     }

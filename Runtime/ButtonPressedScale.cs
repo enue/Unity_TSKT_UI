@@ -11,7 +11,7 @@ namespace TSKT
     public class ButtonPressedScale : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         Button button;
-        Button Button => button ?? (button = GetComponent<Button>());
+        Button Button => button ? button : (button = GetComponent<Button>());
 
         Tweens.Scale tween;
 

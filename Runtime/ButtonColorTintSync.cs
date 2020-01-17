@@ -10,7 +10,7 @@ namespace TSKT
     public class ButtonColorTintSync : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
     {
         Button button;
-        Button Button => button ?? (button = GetComponent<Button>());
+        Button Button => button ? button : (button = GetComponent<Button>());
 
         Color currentColor = Color.white;
         bool isPointerDown = false;

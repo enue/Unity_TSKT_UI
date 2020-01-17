@@ -17,7 +17,7 @@ namespace TSKT
         {
             get
             {
-                return text ?? (text = GetComponent<Text>());
+                return text ? text : (text = GetComponent<Text>());
             }
         }
 

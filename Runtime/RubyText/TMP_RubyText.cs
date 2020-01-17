@@ -17,7 +17,7 @@ namespace TSKT
         {
             get
             {
-                return text ?? (text = GetComponent<TMPro.TMP_Text>());
+                return text ? text : (text = GetComponent<TMPro.TMP_Text>());
             }
         }
 
