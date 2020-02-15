@@ -12,12 +12,13 @@ namespace TSKT
         readonly int[] bodyQuadCountRubyQuadCountMap;
         readonly public float duration;
 
-        public RubyTextTypingEffect(in StringWithRuby text, RubyText ruby, Text body, TypingEffect rubyTypingEffect,
+        public RubyTextTypingEffect(in StringWithRuby text, RubyText ruby, TypingEffect rubyTypingEffect,
             params QuadByQuad[] bodyTypingEffects)
         {
             this.rubyTypingEffect = rubyTypingEffect;
             this.bodyTypingEffects = bodyTypingEffects;
 
+            var body = bodyTypingEffects[0].Text;
             ruby.Set(text);
             body.text = text.body;
             bodyQuadCountRubyQuadCountMap = ruby.GetBodyQuadCountRubyQuadCountMap();
