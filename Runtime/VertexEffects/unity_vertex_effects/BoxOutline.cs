@@ -15,6 +15,9 @@ namespace TSKT
         [Range(1, maxHalfSampleCount)]
         int m_halfSampleCountY = 1;
 
+        [SerializeField]
+        Vector2 offset = Vector2.zero;
+
         public int halfSampleCountX
         {
             get
@@ -58,7 +61,9 @@ namespace TSKT
                     if (!(x == 0 && y == 0))
                     {
                         var next = count + original;
-                        ApplyShadow(vertices, effectColor, count, next, dx * x, dy * y);
+                        ApplyShadow(vertices, effectColor, count, next,
+                            dx * x + offset.x,
+                            dy * y + offset.y);
                         count = next;
                     }
                 }

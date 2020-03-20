@@ -13,6 +13,9 @@ namespace TSKT
         [SerializeField]
         int m_sampleIncrement = 2;
 
+        [SerializeField]
+        Vector2 offset = Vector2.zero;
+
 #if UNITY_EDITOR
         protected override void OnValidate()
         {
@@ -84,7 +87,9 @@ namespace TSKT
                 for (int j = 0; j < sampleCount; j++)
                 {
                     var next = count + original;
-                    ApplyShadow(verts, effectColor, count, next, rx * Mathf.Cos(rad), ry * Mathf.Sin(rad));
+                    ApplyShadow(verts, effectColor, count, next,
+                        rx * Mathf.Cos(rad) + offset.x,
+                        ry * Mathf.Sin(rad) + offset.y);
                     count = next;
                     rad += radStep;
                 }
