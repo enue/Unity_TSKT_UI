@@ -6,11 +6,11 @@ using UnityEngine.EventSystems;
 
 namespace TSKT
 {
-    [RequireComponent(typeof(Button))]
+    [RequireComponent(typeof(Selectable))]
     public class ButtonColorTintSync : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
     {
-        Button button;
-        Button Button => button ? button : (button = GetComponent<Button>());
+        Selectable selectable;
+        Selectable Selectable => selectable ? selectable : (selectable = GetComponent<Selectable>());
 
         Color currentColor = Color.white;
         bool isPointerDown = false;
@@ -22,10 +22,10 @@ namespace TSKT
 
         void Update()
         {
-            var colorBlock = Button.colors;
+            var colorBlock = Selectable.colors;
             Color color;
             var tweenInstant = false;
-            if (!Button.interactable)
+            if (!Selectable.interactable)
             {
                 color = colorBlock.disabledColor;
                 tweenInstant = true;

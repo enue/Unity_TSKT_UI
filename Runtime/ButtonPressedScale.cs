@@ -7,11 +7,11 @@ using UnityEngine.EventSystems;
 namespace TSKT
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(Button))]
+    [RequireComponent(typeof(Selectable))]
     public class ButtonPressedScale : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        Button button;
-        Button Button => button ? button : (button = GetComponent<Button>());
+        Selectable selectable;
+        Selectable Selectable => selectable ? selectable : (selectable = GetComponent<Selectable>());
 
         [SerializeField]
         Vector3 scale = new Vector3(0.9f, 0.9f, 0.9f);
@@ -39,8 +39,8 @@ namespace TSKT
         public void OnPointerDown(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Left
-                && Button.interactable
-                && Button.isActiveAndEnabled)
+                && Selectable.interactable
+                && Selectable.isActiveAndEnabled)
             {
                 pressed = true;
                 Refresh();
@@ -49,8 +49,8 @@ namespace TSKT
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (Button.interactable
-                && Button.isActiveAndEnabled)
+            if (Selectable.interactable
+                && Selectable.isActiveAndEnabled)
             {
                 hovered = true;
                 Refresh();
