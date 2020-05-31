@@ -2,24 +2,17 @@
 
 + Unity Version : 2019.1.10
 
-# Install
+# install
 
-+ TextMeshPro（2.0.1）をインポートする
-    + PackageManagerを使ってインポート
-    + メニューのWindow->TextMeshPro->Import TMP Essential Resources
-+ Unity_TSKT_UIとUnity_TSKT_Containerをインポートする
-    + manifest.jsonに↓を追記すれば良い
+Unity Package Manager
 
-Packages/manifest.json
-```json
-{
-  "dependencies": {
-    "com.github.enue.tskt_ui": "https://github.com/enue/Unity_TSKT_UI.git",
-    "com.github.enue.tskt_container": "https://github.com/enue/Unity_TSKT_Container.git",
-    "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git",
-  }
-}
-```
+add package from git url
+
++ `https://github.com/Cysharp/UniTask.git?path=Assets/UniRx.Async`
++ `https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package`
++ `https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package`
++ `https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package`
++ `https://github.com/enue/Unity_TSKT_UI.git?path=Assets/Package`
 
 # 機能
 
