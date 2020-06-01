@@ -1,9 +1,9 @@
 {
   "dependencies": {
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=Assets/UniRx.Async",
-    "com.github.enue.tskt_container": "https://github.com/enue/Unity_TSKT_Container.git",
-    "com.github.enue.tskt_math": "https://github.com/enue/Unity_TSKT_Math.git",
-    "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git",
+    "com.github.enue.tskt_container": "https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package",
+    "com.github.enue.tskt_math": "https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package",
+    "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package",
     "com.unity.collab-proxy": "1.2.16",
     "com.unity.ide.rider": "1.1.4",
     "com.unity.ide.vscode": "1.2.0",
@@ -50,15 +50,15 @@
     },
     "com.github.enue.tskt_container": {
       "revision": "HEAD",
-      "hash": "777035cff18b59ed614c530395a9b013129ec2ba"
+      "hash": "a9d2ed44394584c3ab8bc4a0003d7912143eee9e"
     },
     "com.github.enue.tskt_math": {
       "revision": "HEAD",
-      "hash": "618ddf6c1aa7133c526e95f2294a1baf285acc85"
+      "hash": "988a8b932713cf967361a27a57498b9476eb5a1d"
     },
     "com.github.enue.tskt_tween": {
       "revision": "HEAD",
-      "hash": "da329cf7408dac5b3b06f60d0397cbbef7796822"
+      "hash": "5c608eab038cff9af3b0a5bb0cd30a5ebcb03774"
     }
   }
 }
