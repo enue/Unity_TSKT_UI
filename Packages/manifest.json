@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=Assets/UniRx.Async",
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.github.enue.tskt_container": "https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package",
     "com.github.enue.tskt_math": "https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package",
     "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package",
@@ -46,7 +46,7 @@
   "lock": {
     "com.cysharp.unitask": {
       "revision": "HEAD",
-      "hash": "28e1fa98c9db7a6fbe5d3bf2bcaf7a82d89e5b9a"
+      "hash": "1bec3f507ebe08cfecdf91bcfeb8a1a15319fc03"
     },
     "com.github.enue.tskt_container": {
       "revision": "HEAD",
@@ -58,7 +58,7 @@
     },
     "com.github.enue.tskt_tween": {
       "revision": "HEAD",
-      "hash": "d2c6febd27a60630d20cbd92c6011c74205a326f"
+      "hash": "eae8967025de40d9659001ef8f7b0e361e775370"
     }
   }
 }
