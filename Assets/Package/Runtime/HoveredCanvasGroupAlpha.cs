@@ -23,7 +23,7 @@ namespace TSKT
         [Range(0f, 1f)]
         float hoverAlpha = 0.33f;
 
-        Tweens.Value tween;
+        Tweens.Color tween;
         float? toAlpha;
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -39,10 +39,9 @@ namespace TSKT
             }
             toAlpha = hoverAlpha;
             tween?.Halt();
-            tween = Tween.Value(gameObject, duration, scaledTime: false)
-                .From(CanvasGroup.alpha)
-                .To(hoverAlpha)
-                .Callback(_ => CanvasGroup.alpha = _);
+            tween = Tween.Color(CanvasGroup, duration, scaledTime: false)
+                .FromAlpha(CanvasGroup.alpha)
+                .ToAlpha(hoverAlpha);
         }
 
         public void OnPointerExit(PointerEventData eventData)
@@ -54,10 +53,9 @@ namespace TSKT
 
             toAlpha = normalAlpha;
             tween?.Halt();
-            tween = Tween.Value(gameObject, duration, scaledTime: false)
-                .From(CanvasGroup.alpha)
-                .To(normalAlpha)
-                .Callback(_ => CanvasGroup.alpha = _);
+            tween = Tween.Color(CanvasGroup, duration, scaledTime: false)
+                .FromAlpha(CanvasGroup.alpha)
+                .ToAlpha(normalAlpha);
         }
     }
 }
