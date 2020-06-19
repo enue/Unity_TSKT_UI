@@ -14,6 +14,9 @@ namespace TSKT
         Image imagePrefab = default;
 
         [SerializeField]
+        bool useSpriteMesh = false;
+
+        [SerializeField]
         bool preserveAspect = false;
 
         [SerializeField]
@@ -153,9 +156,7 @@ namespace TSKT
                     }
                     item.sprite = it.sprite;
                     item.color = color;
-
-                    item.useSpriteMesh = it.sprite.packed && 
-                        ((it.sprite.packingRotation != SpritePackingRotation.None) || (it.sprite.packingMode == SpritePackingMode.Tight));
+                    item.useSpriteMesh = useSpriteMesh;
 
                     var bottom = it.rect.yMin / spriteSize.y;
                     var top = it.rect.yMax / spriteSize.y;
