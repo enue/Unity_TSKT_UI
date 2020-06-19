@@ -154,6 +154,9 @@ namespace TSKT
                     item.sprite = it.sprite;
                     item.color = color;
 
+                    item.useSpriteMesh = it.sprite.packed && 
+                        ((it.sprite.packingRotation != SpritePackingRotation.None) || (it.sprite.packingMode == SpritePackingMode.Tight));
+
                     var bottom = it.rect.yMin / spriteSize.y;
                     var top = it.rect.yMax / spriteSize.y;
                     var left = it.rect.xMin / spriteSize.x;
