@@ -4,6 +4,7 @@
     "com.github.enue.tskt_container": "https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package",
     "com.github.enue.tskt_math": "https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package",
     "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package",
+    "com.unity.2d.sprite": "1.0.0",
     "com.unity.collab-proxy": "1.2.16",
     "com.unity.ide.rider": "1.1.4",
     "com.unity.ide.vscode": "1.2.0",
