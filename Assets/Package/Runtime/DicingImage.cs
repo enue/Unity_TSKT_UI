@@ -7,7 +7,6 @@ using System.Linq;
 namespace TSKT
 {
     [RequireComponent(typeof(RectTransform))]
-    [ExecuteInEditMode()]
     public class DicingImage : MonoBehaviour
     {
         [SerializeField]
@@ -38,7 +37,7 @@ namespace TSKT
                 if (sprite.sprites != value.sprites)
                 {
                     sprite = value;
-                    Refresh();
+                    Rebuild();
                 }
             }
         }
@@ -59,29 +58,13 @@ namespace TSKT
             }
         }
 
-        void OnEnable()
-        {
-            foreach (var it in items)
-            {
-                it.enabled = true;
-            }
-        }
-
-        void OnDisable()
-        {
-            foreach (var it in items)
-            {
-                it.enabled = false;
-            }
-        }
-
         public void SetSingleSprite(Sprite sprite)
         {
             Sprite = new DicingSprite(new Sprite[1] { sprite });
-            Refresh();
+            Rebuild();
         }
 
-        void Refresh()
+        public void Rebuild()
         {
             var oldItems = items.ToList();
             try
@@ -98,15 +81,13 @@ namespace TSKT
                     return;
                 }
 
-                var rectTranform = (RectTransform)transform;
-
                 var itemBuilder = new ArrayBuilder<Image>(sprite.sprites.Length);
 
                 var spriteSize = sprite.Size;
                 Rect areaInImage;
                 if (preserveAspect)
                 {
-                    var imageSize = rectTranform.rect.size;
+                    var imageSize = RectTransform.rect.size;
                     // if (spriteSize.y / spriteSize.x > size.y / size.x)
                     if (spriteSize.y * imageSize.x > imageSize.y * spriteSize.x)
                     {
@@ -195,31 +176,13 @@ namespace TSKT
             }
         }
 
-        void Update()
-        {
-            if ((sprite.sprites == null) != (items == null))
-            {
-                Refresh();
-                return;
-            }
-            if (sprite.sprites.Length != items.Length)
-            {
-                Refresh();
-                return;
-            }
-            for (int i = 0; i < sprite.sprites.Length; ++i)
-            {
-                if (sprite.sprites[i] != items[i].sprite)
-                {
-                    Refresh();
-                    return;
-                }
-            }
-        }
-
         public void SetNativeSize()
         {
             RectTransform.sizeDelta = Sprite.Size;
+            if (preserveAspect)
+            {
+                Rebuild();
+            }
         }
     }
 }

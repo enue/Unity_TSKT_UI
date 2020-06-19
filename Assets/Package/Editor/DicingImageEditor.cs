@@ -25,6 +25,11 @@ namespace TSKT
                 sprite.AutoCorrectSizeAndPositions();
                 image.Sprite = sprite;
             }
+            if (GUILayout.Button("Rebuild"))
+            {
+                var image = target as DicingImage;
+                image.Rebuild();
+            }
             if (GUILayout.Button("Set Native Size"))
             {
                 var image = target as DicingImage;
