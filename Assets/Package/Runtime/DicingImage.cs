@@ -178,7 +178,9 @@ namespace TSKT
 
         public void SetNativeSize()
         {
-            RectTransform.sizeDelta = Sprite.Size;
+            var size = Sprite.Size;
+            RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+            RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
             if (preserveAspect)
             {
                 Rebuild();
