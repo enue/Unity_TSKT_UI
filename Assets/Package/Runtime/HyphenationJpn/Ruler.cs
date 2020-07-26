@@ -129,13 +129,8 @@ namespace TSKT.HyphenationJpns
                 cachedFontStyle = fontStyle;
                 characterWidthCache.Clear();
             }
-            var foundInfo = font.GetCharacterInfo(character, out var info, fontSize, fontStyle);
-            if (foundInfo)
-            {
-                characterWidthCache.Add(character, info.advance);
-            }
-            Debug.Assert(foundInfo, "not found character info : " + character);
-
+            font.GetCharacterInfo(character, out var info, fontSize, fontStyle);
+            characterWidthCache.Add(character, info.advance);
             return info.advance;
         }
 
