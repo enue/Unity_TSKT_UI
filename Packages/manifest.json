@@ -5,11 +5,11 @@
     "com.github.enue.tskt_math": "https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package",
     "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package",
     "com.unity.2d.sprite": "1.0.0",
-    "com.unity.collab-proxy": "1.2.16",
-    "com.unity.ide.rider": "1.1.4",
-    "com.unity.ide.vscode": "1.2.0",
+    "com.unity.ide.rider": "1.2.1",
+    "com.unity.ide.visualstudio": "2.0.2",
+    "com.unity.ide.vscode": "1.2.1",
     "com.unity.test-framework": "1.1.14",
-    "com.unity.textmeshpro": "2.0.1",
+    "com.unity.textmeshpro": "3.0.0",
     "com.unity.timeline": "1.2.14",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
@@ -43,23 +43,5 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  },
-  "lock": {
-    "com.cysharp.unitask": {
-      "revision": "HEAD",
-      "hash": "1bec3f507ebe08cfecdf91bcfeb8a1a15319fc03"
-    },
-    "com.github.enue.tskt_container": {
-      "revision": "HEAD",
-      "hash": "a9d2ed44394584c3ab8bc4a0003d7912143eee9e"
-    },
-    "com.github.enue.tskt_math": {
-      "revision": "HEAD",
-      "hash": "988a8b932713cf967361a27a57498b9476eb5a1d"
-    },
-    "com.github.enue.tskt_tween": {
-      "revision": "HEAD",
-      "hash": "eae8967025de40d9659001ef8f7b0e361e775370"
-    }
   }
 }
