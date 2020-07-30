@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+#if TSKT_UI_SUPPORT_TEXTMESHPRO
+
 namespace TSKT
 {
     public class TMP_PopQuadByQuad : TMP_QuadByQuad
@@ -32,3 +34,4 @@ namespace TSKT
         }
     }
 }
+#endif

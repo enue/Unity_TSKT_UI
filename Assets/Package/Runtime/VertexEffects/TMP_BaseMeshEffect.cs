@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+
+#if TSKT_UI_SUPPORT_TEXTMESHPRO
 using TMPro;
 using UnityEngine;
 using System.Linq;
@@ -16,3 +18,4 @@ namespace TSKT
         public abstract void Modify(TMP_VertexHelper vertexHelper);
     }
 }
+#endif
