@@ -1,7 +1,7 @@
 {
     "name": "com.github.enue.tskt_ui",
     "displayName": "TSKT UI",
-    "version": "0.19.2",
+    "version": "0.19.3",
     "unity": "2019.4",
     "description": "",
     "keywords": [],
@@ -10,7 +10,7 @@
         "com.cysharp.unitask": "2.0.13",
         "com.github.enue.tskt_container": "0.5.2",
         "com.github.enue.tskt_math": "0.8.3",
-        "com.github.enue.tskt_tween": "0.5.0",
+        "com.github.enue.tskt_tween": "0.5.0"
     },
     "samples": [
         {
