@@ -20,6 +20,17 @@ namespace TSKT
         [SerializeField]
         Graphic[] targets = default;
 
+        bool[] targetIsActives = default;
+
+        void Start()
+        {
+            targetIsActives = new bool[targets.Length];
+            for (int i = 0; i < targets.Length; ++i)
+            {
+                targetIsActives[i] = targets[i].isActiveAndEnabled;
+            }
+        }
+
         void Update()
         {
             var colorBlock = Selectable.colors;
@@ -47,13 +58,23 @@ namespace TSKT
                 color = colorBlock.normalColor;
             }
 
-            if (currentColor != color)
+            var shouldModify = (currentColor != color);
+            currentColor = color;
+            var fadeDuration = tweenInstant ? 0f : colorBlock.fadeDuration;
+            for (int i = 0; i < targets.Length; ++i)
             {
-                var fadeDuration = tweenInstant ? 0f : colorBlock.fadeDuration;
-                currentColor = color;
-                foreach (var target in targets)
+                var target = targets[i];
+                if (target.isActiveAndEnabled)
                 {
-                    target.CrossFadeColor(currentColor, fadeDuration, true, true);
+                    if (shouldModify || !targetIsActives[i])
+                    {
+                        target.CrossFadeColor(currentColor, fadeDuration, true, true);
+                    }
+                    targetIsActives[i] = true;
+                }
+                else
+                {
+                    targetIsActives[i] = false;
                 }
             }
         }
