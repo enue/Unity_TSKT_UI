@@ -20,22 +20,28 @@ namespace TSKT
         [SerializeField]
         Graphic[] targets = default;
 
-        bool[] updatedTargets = default;
-
-        void Start()
+        bool[] updatedTargets = null;
+        bool[] UpdatedTargets
         {
-            updatedTargets = new bool[targets.Length];
-            for (int i = 0; i < targets.Length; ++i)
+            get
             {
-                updatedTargets[i] = false;
+                if (updatedTargets == null)
+                {
+                    updatedTargets = new bool[targets.Length];
+                    for (int i = 0; i < targets.Length; ++i)
+                    {
+                        updatedTargets[i] = false;
+                    }
+                }
+                return updatedTargets;
             }
         }
 
         void OnDisable()
         {
-            for (int i = 0; i < updatedTargets.Length; ++i)
+            for (int i = 0; i < UpdatedTargets.Length; ++i)
             {
-                updatedTargets[i] = false;
+                UpdatedTargets[i] = false;
             }
         }
 
@@ -74,15 +80,15 @@ namespace TSKT
                 var target = targets[i];
                 if (target.isActiveAndEnabled)
                 {
-                    if (shouldModify || !updatedTargets[i])
+                    if (shouldModify || !UpdatedTargets[i])
                     {
                         target.CrossFadeColor(currentColor, fadeDuration, true, true);
                     }
-                    updatedTargets[i] = true;
+                    UpdatedTargets[i] = true;
                 }
                 else
                 {
-                    updatedTargets[i] = false;
+                    UpdatedTargets[i] = false;
                 }
             }
         }
