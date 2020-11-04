@@ -71,3 +71,13 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.ide.visualstudio from version 2.0.1 to 2.0.2
+
+=== Wed Nov  4 15:07:06 2020
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ide.visualstudio from version 2.0.2 to 2.0.3
+  com.unity.ide.vscode from version 1.2.1 to 1.2.2
+  com.unity.test-framework from version 1.1.16 to 1.1.18
