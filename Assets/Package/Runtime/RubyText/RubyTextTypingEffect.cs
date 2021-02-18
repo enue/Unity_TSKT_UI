@@ -27,7 +27,7 @@ namespace TSKT
             Update(0f);
         }
 
-        public void Update(float elapsedTime)
+        readonly public void Update(float elapsedTime)
         {
             foreach (var it in bodyTypingEffects)
             {

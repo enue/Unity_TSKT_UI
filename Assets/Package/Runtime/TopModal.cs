@@ -10,7 +10,7 @@ namespace TSKT
         public readonly struct Handler : System.IDisposable
         {
             readonly TopModal owner;
-            public int Id { get; }
+            readonly public int Id { get; }
 
             public Handler(TopModal topModal)
             {

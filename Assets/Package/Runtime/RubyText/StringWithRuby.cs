@@ -73,7 +73,7 @@ namespace TSKT
             return new StringWithRuby(bodyText.ToString(), rubies.ToArray(), rubyText.ToString());
         }
 
-        public int[] GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList)
+        readonly public int[] GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList)
         {
             var result = new ArrayBuilder<int>(bodyCharacterHasQuadList.Count(_ => _) + 1);
             result.Add(0);
@@ -197,7 +197,7 @@ namespace TSKT
             return new RichTextBuilder(left.body + right.body, newRubies, left.joinedRubyText + right.joinedRubyText, newTags);
         }
 
-        public RichTextBuilder Remove(int startIndex, int count)
+        readonly public RichTextBuilder Remove(int startIndex, int count)
         {
             var newBody = body.Remove(startIndex, count);
             var removeRange = new RangeInt(startIndex, count);
@@ -242,7 +242,7 @@ namespace TSKT
                 newTags.ToArray());
         }
 
-        public RichTextBuilder Substring(int startIndex, int length)
+        readonly public RichTextBuilder Substring(int startIndex, int length)
         {
             if (startIndex < 0
                 || length < 0
@@ -293,7 +293,7 @@ namespace TSKT
             return new RichTextBuilder(newBody, newRubies.ToArray(), newJoinedRubyText, newTags.ToArray());
         }
 
-        public RichTextBuilder RemoveRubyAt(int index)
+        readonly public RichTextBuilder RemoveRubyAt(int index)
         {
             var newRubies = new Ruby[rubies.Length - 1];
             for (int i = 0; i < rubies.Length; ++i)
@@ -316,7 +316,7 @@ namespace TSKT
             return new RichTextBuilder(body, newRubies, newRubyText, tags);
         }
 
-        public RichTextBuilder Insert(int startIndex, in RichTextBuilder value)
+        readonly public RichTextBuilder Insert(int startIndex, in RichTextBuilder value)
         {
             var newBody = body.Insert(startIndex, value.body);
 
@@ -406,7 +406,7 @@ namespace TSKT
             return new RichTextBuilder(newBody, newRubies.Array, newRubyText.ToString(), newTags.Array);
         }
 
-        public RichTextBuilder InsertTag(int leftIndex, string left, int rightIndex, string right)
+        readonly public RichTextBuilder InsertTag(int leftIndex, string left, int rightIndex, string right)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + 1);
 
@@ -419,7 +419,7 @@ namespace TSKT
             return new RichTextBuilder(body, rubies, joinedRubyText, tagBuilder.Array);
         }
 
-        public RichTextBuilder InsertTags(params Tag[] array)
+        readonly public RichTextBuilder InsertTags(params Tag[] array)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + array.Length);
 
@@ -435,7 +435,7 @@ namespace TSKT
             return new RichTextBuilder(body, rubies, joinedRubyText, tagBuilder.Array);
         }
 
-        public StringWithRuby ToStringWithRuby()
+        readonly public StringWithRuby ToStringWithRuby()
         {
             if (tags.Length == 0)
             {
@@ -597,7 +597,7 @@ namespace TSKT
             return result;
         }
 
-        public RichTextBuilder WrapWithHyphenation(UnityEngine.UI.Text text, HyphenationJpns.Ruler ruler, bool allowSplitRuby = false)
+        readonly public RichTextBuilder WrapWithHyphenation(UnityEngine.UI.Text text, HyphenationJpns.Ruler ruler, bool allowSplitRuby = false)
         {
             var newLinePositions = ruler.GetNewLinePositions(text.rectTransform.rect.width,
                 text.font,

@@ -18,9 +18,9 @@ namespace TSKT
             size = default;
             spriteRects = default;
         }
-        public bool Empty => sprites == null || sprites.Length == 0;
+        readonly public bool Empty => sprites == null || sprites.Length == 0;
 
-        public Vector2 Size
+        readonly public Vector2 Size
         {
             get
             {
@@ -44,7 +44,7 @@ namespace TSKT
             }
         }
 
-        public Rect[] SpriteRects
+        readonly public Rect[] SpriteRects
         {
             get
             {

@@ -26,7 +26,7 @@ namespace TSKT
                 else
                 {
                     var color = vertexHelper.Colors[index];
-                    color.a = color.a * normalizedTime;
+                    color.a *= normalizedTime;
                     vertexHelper.Colors[index] = color;
                 }
             }
