@@ -5,24 +5,24 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "1bec3f507ebe08cfecdf91bcfeb8a1a15319fc03"
+      "hash": "1173bb4f34460ee473c93b414066d8d7436445dd"
     },
     "com.github.enue.tskt_container": {
       "version": "https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "a9d2ed44394584c3ab8bc4a0003d7912143eee9e"
+      "hash": "16673d7e5f31049039c420ae2ffa8567bb689528"
     },
     "com.github.enue.tskt_math": {
       "version": "https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.github.enue.tskt_container": "0.3.1",
+        "com.github.enue.tskt_container": "0.5.3",
         "com.unity.mathematics": "1.1.0"
       },
-      "hash": "988a8b932713cf967361a27a57498b9476eb5a1d"
+      "hash": "6ed743758569b0eea175786189ef0428687cbc10"
     },
     "com.github.enue.tskt_tween": {
       "version": "https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package",
@@ -42,14 +42,14 @@
       "dependencies": {}
     },
     "com.unity.ext.nunit": {
-      "version": "1.0.0",
+      "version": "1.0.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "1.2.1",
+      "version": "2.0.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -58,10 +58,12 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.3",
+      "version": "2.0.7",
       "depth": 0,
       "source": "registry",
-      "dependencies": {},
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.vscode": {
@@ -79,11 +81,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.1.18",
+      "version": "1.1.22",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.ext.nunit": "1.0.0",
+        "com.unity.ext.nunit": "1.0.6",
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0"
       },
