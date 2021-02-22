@@ -11,12 +11,5 @@
         "com.github.enue.tskt_container": "0.5.2",
         "com.github.enue.tskt_math": "0.8.3",
         "com.github.enue.tskt_tween": "0.5.0"
-    },
-    "samples": [
-        {
-            "displayName": "RubyText",
-            "description": "Description for ruby",
-            "path": "Samples~/RubyText"
-        }
-    ]
+    }
 }
