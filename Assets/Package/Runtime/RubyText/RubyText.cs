@@ -35,8 +35,6 @@ namespace TSKT
 
         StringWithRuby stringWithRuby;
 
-        List<UICharInfo> charInfoBuffer;
-
         public void Set(in StringWithRuby stringWithRuby)
         {
             Text.text = stringWithRuby.joinedRubyText;
@@ -131,25 +129,21 @@ namespace TSKT
             {
                 generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
 
-                if (charInfoBuffer == null)
+                using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
                 {
-                    charInfoBuffer = new List<UICharInfo>();
-                }
-                charInfoBuffer.Clear();
+                    generator.GetCharacters(characters);
 
-                var characters = charInfoBuffer;
-                generator.GetCharacters(characters);
-
-                var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
-                var scale = 1f / bodyText.pixelsPerUnit;
-                foreach (var character in characters)
-                {
-                    var left = character.cursorPos.x * scale;
-                    var right = (character.cursorPos.x + character.charWidth) * scale;
-                    var y = character.cursorPos.y * scale;
-                    builder.Add((left, right, y));
+                    var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
+                    var scale = 1f / bodyText.pixelsPerUnit;
+                    foreach (var character in characters)
+                    {
+                        var left = character.cursorPos.x * scale;
+                        var right = (character.cursorPos.x + character.charWidth) * scale;
+                        var y = character.cursorPos.y * scale;
+                        builder.Add((left, right, y));
+                    }
+                    return builder.Array;
                 }
-                return builder.Array;
             }
         }
 
@@ -161,21 +155,17 @@ namespace TSKT
             {
                 generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
 
-                if (charInfoBuffer == null)
+                using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
                 {
-                    charInfoBuffer = new List<UICharInfo>();
-                }
-                charInfoBuffer.Clear();
+                    generator.GetCharacters(characters);
 
-                var characters = charInfoBuffer;
-                generator.GetCharacters(characters);
-
-                var builder = new ArrayBuilder<bool>(characters.Count);
-                foreach (var character in characters)
-                {
-                    builder.Add(character.charWidth != 0f);
+                    var builder = new ArrayBuilder<bool>(characters.Count);
+                    foreach (var character in characters)
+                    {
+                        builder.Add(character.charWidth != 0f);
+                    }
+                    return builder.Array;
                 }
-                return builder.Array;
             }
         }
 
