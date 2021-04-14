@@ -16,6 +16,9 @@ namespace TSKT
         [SerializeField]
         Vector2 offset = Vector2.zero;
 
+        [SerializeField]
+        bool constantPixelSize = false;
+
 #if UNITY_EDITOR
         protected override void OnValidate()
         {
@@ -87,9 +90,19 @@ namespace TSKT
                 for (int j = 0; j < sampleCount; j++)
                 {
                     var next = count + original;
+
+                    var p = rx * Mathf.Cos(rad) + offset.x;
+                    var q = ry * Mathf.Sin(rad) + offset.y;
+
+                    if (constantPixelSize)
+                    {
+                        var scale = transform.lossyScale;
+                        p /= scale.x;
+                        q /= scale.y;
+                    }
+
                     ApplyShadow(verts, effectColor, count, next,
-                        rx * Mathf.Cos(rad) + offset.x,
-                        ry * Mathf.Sin(rad) + offset.y);
+                        p, q);
                     count = next;
                     rad += radStep;
                 }

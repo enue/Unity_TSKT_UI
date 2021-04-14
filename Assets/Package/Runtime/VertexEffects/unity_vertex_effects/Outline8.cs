@@ -9,6 +9,9 @@ namespace TSKT
         [SerializeField]
         Vector2 offset = Vector2.zero;
 
+        [SerializeField]
+        bool constantPixelSize = false;
+
         override protected void ModifyMesh(List<UIVertex> verts)
         {
             var original = verts.Count;
@@ -20,9 +23,18 @@ namespace TSKT
                     if (!(x == 0 && y == 0))
                     {
                         var next = count + original;
+
+                        var p = effectDistance.x * x + offset.x;
+                        var q = effectDistance.y * y + offset.y;
+                        if (constantPixelSize)
+                        {
+                            var scale = transform.lossyScale;
+                            p /= scale.x;
+                            q /= scale.y;
+                        }
+
                         ApplyShadow(verts, effectColor, count, next,
-                            effectDistance.x * x + offset.x,
-                            effectDistance.y * y + offset.y);
+                            p, q);
                         count = next;
                     }
                 }

@@ -18,6 +18,9 @@ namespace TSKT
         [SerializeField]
         Vector2 offset = Vector2.zero;
 
+        [SerializeField]
+        bool constantPixelSize = false;
+
         public int halfSampleCountX
         {
             get
@@ -61,9 +64,18 @@ namespace TSKT
                     if (!(x == 0 && y == 0))
                     {
                         var next = count + original;
-                        ApplyShadow(vertices, effectColor, count, next,
-                            dx * x + offset.x,
-                            dy * y + offset.y);
+
+                        var p = dx * x + offset.x;
+                        var q = dy * y + offset.y;
+
+                        if (constantPixelSize)
+                        {
+                            var scale = transform.lossyScale;
+                            p /= scale.x;
+                            q /= scale.y;
+                        }
+
+                        ApplyShadow(vertices, effectColor, count, next, p, q);
                         count = next;
                     }
                 }
