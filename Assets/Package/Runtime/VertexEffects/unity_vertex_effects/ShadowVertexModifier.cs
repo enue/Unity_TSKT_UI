@@ -13,12 +13,13 @@ namespace TSKT
             {
                 return;
             }
-            var vertices = UIVerticesPool.Get();
-            vh.GetUIVertexStream(vertices);
-            ModifyMesh(vertices);
-            vh.Clear();
-            vh.AddUIVertexTriangleStream(vertices);
-            UIVerticesPool.Release(vertices);
+            using (UnityEngine.Pool.ListPool<UIVertex>.Get(out var vertices))
+            {
+                vh.GetUIVertexStream(vertices);
+                ModifyMesh(vertices);
+                vh.Clear();
+                vh.AddUIVertexTriangleStream(vertices);
+            }
         }
 
         protected abstract void ModifyMesh(List<UIVertex> verts);
