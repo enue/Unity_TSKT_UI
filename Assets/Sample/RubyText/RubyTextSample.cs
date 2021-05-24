@@ -3,57 +3,58 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+#nullable enable
 
 namespace TSKT
 {
     public class RubyTextSample : MonoBehaviour
     {
         [SerializeField]
-        RubyText ruby = default;
+        RubyText? ruby = default;
 
         [SerializeField]
-        Text body = default;
-
-
-        [SerializeField]
-        RubyText rubyForTypingMessage = default;
-
-        [SerializeField]
-        Text bodyForTypingMessage = default;
+        Text? body = default;
 
 
         [SerializeField]
-        RubyText rubyForTypingMessageWithFade = default;
+        RubyText? rubyForTypingMessage = default;
 
         [SerializeField]
-        TypingEffect rubyTypingEffect = default;
-
-        [SerializeField]
-        QuadByQuad[] bodyTypingEffects = default;
+        Text? bodyForTypingMessage = default;
 
 
         [SerializeField]
-        TMP_RubyText textMeshProRuby = default;
+        RubyText? rubyForTypingMessageWithFade = default;
 
         [SerializeField]
-        TMPro.TextMeshProUGUI textMeshProBody = default;
-
-
-        [SerializeField]
-        TMP_RubyText textMeshProRubyForTypingMessage = default;
+        TypingEffect? rubyTypingEffect = default;
 
         [SerializeField]
-        TMP_TypingEffect textMeshProBodyForTypingMessage = default;
+        QuadByQuad?[] bodyTypingEffects = default!;
 
 
         [SerializeField]
-        TMP_RubyText textMeshProRubyForTypingMessageWithFade = default;
+        TMP_RubyText? textMeshProRuby = default;
 
         [SerializeField]
-        TMP_TypingEffect textMeshProRubyTypingEffect = default;
+        TMPro.TextMeshProUGUI? textMeshProBody = default;
+
 
         [SerializeField]
-        TMP_QuadByQuad[] textMeshProBodyTypingEffects = default;
+        TMP_RubyText? textMeshProRubyForTypingMessage = default;
+
+        [SerializeField]
+        TMP_TypingEffect? textMeshProBodyForTypingMessage = default;
+
+
+        [SerializeField]
+        TMP_RubyText? textMeshProRubyForTypingMessageWithFade = default;
+
+        [SerializeField]
+        TMP_TypingEffect? textMeshProRubyTypingEffect = default;
+
+        [SerializeField]
+        TMP_QuadByQuad?[] textMeshProBodyTypingEffects = default!;
 
 
         void Start()
@@ -79,16 +80,16 @@ namespace TSKT
         void ShowStringWithRuby(string text)
         {
             var wrapped = RichTextBuilder.Parse(text)
-                .WrapWithHyphenation(body, new HyphenationJpns.Ruler())
+                .WrapWithHyphenation(body!, new HyphenationJpns.Ruler())
                 .ToStringWithRuby();
-            ruby.Set(wrapped);
-            body.text = wrapped.body;
+            ruby!.Set(wrapped);
+            body!.text = wrapped.body;
         }
 
         IEnumerator UpdateTypingMessage(string text)
         {
             var richText = RichTextBuilder.Parse(text)
-                .WrapWithHyphenation(body, new HyphenationJpns.Ruler());
+                .WrapWithHyphenation(body!, new HyphenationJpns.Ruler());
 
             while (true)
             {
@@ -99,8 +100,8 @@ namespace TSKT
                         continue;
                     }
                     var sub = richText.Substring(0, i + 1).ToStringWithRuby();
-                    rubyForTypingMessage.Set(sub);
-                    bodyForTypingMessage.text = sub.body;
+                    rubyForTypingMessage!.Set(sub);
+                    bodyForTypingMessage!.text = sub.body;
 
                     yield return new WaitForSeconds(0.05f);
                 }
@@ -110,13 +111,13 @@ namespace TSKT
         IEnumerator UpdateTypingMessageWithFade(string text)
         {
             var stringWithRuby = RichTextBuilder.Parse(text)
-                .WrapWithHyphenation(body, new HyphenationJpns.Ruler())
+                .WrapWithHyphenation(body!, new HyphenationJpns.Ruler())
                 .ToStringWithRuby();
 
             var typingEffect = new RubyTextTypingEffect(stringWithRuby,
-                rubyForTypingMessageWithFade,
-                rubyTypingEffect,
-                bodyTypingEffects);
+                rubyForTypingMessageWithFade!,
+                rubyTypingEffect!,
+                bodyTypingEffects!);
             while (true)
             {
                 var startedTime = Time.time;
@@ -138,8 +139,8 @@ namespace TSKT
         void ShowStringWithRubyTMP(string message)
         {
             var richText = RichTextBuilder.Parse(message).ToStringWithRuby();
-            textMeshProBody.text = richText.body;
-            textMeshProRuby.Set(richText);
+            textMeshProBody!.text = richText.body;
+            textMeshProRuby!.Set(richText);
         }
 
         // ルビを表示すると改行禁則処理でおかしくなるのでいったんルビ表示は諦める。
@@ -151,7 +152,7 @@ namespace TSKT
         {
             var richText = RichTextBuilder.Parse(message);
             var stringWithRuby = richText.ToStringWithRuby();
-            textMeshProBodyForTypingMessage.Modifier.Text.text = stringWithRuby.body;
+            textMeshProBodyForTypingMessage!.Modifier.Text.text = stringWithRuby.body;
 
             while (true)
             {
@@ -174,9 +175,9 @@ namespace TSKT
         {
             var textMeshProTypingEffect = new TMP_RubyTextTypingEffect(
                 RichTextBuilder.Parse(message).ToStringWithRuby(),
-                textMeshProRubyForTypingMessageWithFade,
-                textMeshProRubyTypingEffect,
-                textMeshProBodyTypingEffects);
+                textMeshProRubyForTypingMessageWithFade!,
+                textMeshProRubyTypingEffect!,
+                textMeshProBodyTypingEffects!);
 
             while (true)
             {

@@ -3,14 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+#nullable enable
 
 namespace TSKT
 {
     [RequireComponent(typeof(Selectable))]
     public class ButtonColorTintSync : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
     {
-        Selectable selectable;
-        Selectable Selectable => selectable ? selectable : (selectable = GetComponent<Selectable>());
+        Selectable? selectable;
+        Selectable Selectable => selectable ? selectable! : (selectable = GetComponent<Selectable>());
 
         Color currentColor = Color.white;
         bool isPointerDown = false;
@@ -18,9 +19,9 @@ namespace TSKT
         bool hasSelect = false;
 
         [SerializeField]
-        Graphic[] targets = default;
+        Graphic[] targets = default!;
 
-        bool[] updatedTargets = null;
+        bool[]? updatedTargets = null;
         bool[] UpdatedTargets
         {
             get

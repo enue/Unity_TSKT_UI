@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+#nullable enable
 
 namespace TSKT
 {
@@ -25,7 +26,7 @@ namespace TSKT
 
             ruby.Set(text);
             body.text = text.body;
-            ruby.TryGetBodyQuadCountRubyQuadCountMap(out bodyQuadCountRubyQuadCountMap);
+            ruby.TryGetBodyQuadCountRubyQuadCountMap(out bodyQuadCountRubyQuadCountMap!);
             duration = bodyTypingEffects[0].GetDuration(bodyQuadCountRubyQuadCountMap.Length - 1);
 
             Update(0f);

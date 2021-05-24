@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using System.Linq;
+#nullable enable
 
 namespace TSKT
 {
@@ -13,13 +14,13 @@ namespace TSKT
         [SerializeField]
         bool forceRefresh = false;
 
-        TMP_Text text;
-        public TMP_Text Text => text ? text : (text = GetComponent<TMP_Text>());
+        TMP_Text? text;
+        public TMP_Text Text => text ? text! : (text = GetComponent<TMP_Text>());
 
-        TMP_BaseMeshEffect [] effects = null;
+        TMP_BaseMeshEffect[]? effects = null;
         TMP_BaseMeshEffect[] Effects => effects ?? (effects = GetComponents<TMP_BaseMeshEffect>());
 
-        TMP_VertexHelper vertexHelper;
+        TMP_VertexHelper? vertexHelper;
         TMP_VertexHelper VertexHelper => vertexHelper ?? (vertexHelper = new TMP_VertexHelper(Text));
 
         void LateUpdate()
@@ -42,7 +43,7 @@ namespace TSKT
                 it.Modify(VertexHelper);
             }
 
-            vertexHelper.Consume();
+            VertexHelper.Consume();
         }
     }
 }

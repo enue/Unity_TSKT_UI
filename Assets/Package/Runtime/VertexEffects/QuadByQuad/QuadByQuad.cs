@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+#nullable enable
 
 namespace TSKT
 {
@@ -27,8 +28,8 @@ namespace TSKT
             }
         }
 
-        Text text;
-        public Text Text => text ? text : (text = GetComponent<Text>());
+        Text? text;
+        public Text Text => text ? text! : (text = GetComponent<Text>());
 
         float? startedTime;
 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+#nullable enable
 
 namespace TSKT
 {
@@ -36,12 +37,12 @@ namespace TSKT
             }
         }
 
-        Text text;
+        Text? text;
         Text Text
         {
             get
             {
-                return text ? text : (text = GetComponent<Text>());
+                return text ? text! : (text = GetComponent<Text>());
             }
         }
 

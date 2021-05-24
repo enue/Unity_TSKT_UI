@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+#nullable enable
 
 namespace TSKT
 {
@@ -10,7 +11,7 @@ namespace TSKT
     {
         public Vector2 size;
         public Sprite[] sprites;
-        public Rect[] spriteRects;
+        public Rect[]? spriteRects;
 
         public DicingSprite(params Sprite[] sprites)
         {

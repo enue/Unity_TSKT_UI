@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+#nullable enable
 
 namespace TSKT
 {
@@ -28,7 +29,7 @@ namespace TSKT
             }
         }
 
-        public static TopModal Instance { get; private set; }
+        public static TopModal? Instance { get; private set; }
 
         int nextHandlerId;
         readonly HashSet<int> handlerIds = new HashSet<int>();

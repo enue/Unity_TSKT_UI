@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+#nullable enable
 
 namespace TSKT
 {
@@ -12,7 +13,7 @@ namespace TSKT
     {
         // http://answers.unity3d.com/questions/424874/showing-a-textarea-field-for-a-string-variable-in.html
         [TextArea(3, 10), SerializeField]
-        private string text;
+        private string text = default!;
 
         private Text _Text
         {
@@ -23,7 +24,7 @@ namespace TSKT
                 return _text;
             }
         }
-        private Text _text;
+        private Text? _text;
         readonly HyphenationJpns.Ruler ruler = new HyphenationJpns.Ruler();
 
         protected override void OnRectTransformDimensionsChange()

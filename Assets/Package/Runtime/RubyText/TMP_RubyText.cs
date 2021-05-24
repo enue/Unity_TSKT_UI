@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+#nullable enable
 
 #if TSKT_UI_SUPPORT_TEXTMESHPRO
 
@@ -14,17 +15,17 @@ namespace TSKT
     {
         public const int VertexCountPerQuad = 4;
 
-        TMPro.TMP_Text text;
+        TMPro.TMP_Text? text;
         TMPro.TMP_Text Text
         {
             get
             {
-                return text ? text : (text = GetComponent<TMPro.TMP_Text>());
+                return text ? text! : (text = GetComponent<TMPro.TMP_Text>());
             }
         }
 
         [SerializeField]
-        TMPro.TMP_Text bodyText = default;
+        TMPro.TMP_Text? bodyText = default;
 
         [SerializeField]
         float positionY = 8f;
@@ -223,10 +224,10 @@ namespace TSKT
             }
         }
 
-        bool TryGetBodyCharacterPositions(out (float left, float right, float y)[] result)
+        bool TryGetBodyCharacterPositions(out (float left, float right, float y)[]? result)
         {
             // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
-            var textInfo = bodyText.GetTextInfo(stringWithRuby.body);
+            var textInfo = bodyText!.GetTextInfo(stringWithRuby.body);
             if (textInfo.characterCount == 0)
             {
                 result = null;
@@ -248,10 +249,10 @@ namespace TSKT
             return true;
         }
 
-        bool TryGetBodyCharacterHasQuadList(out bool[] result)
+        bool TryGetBodyCharacterHasQuadList(out bool[]? result)
         {
             // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
-            var textInfo = bodyText.GetTextInfo(stringWithRuby.body);
+            var textInfo = bodyText!.GetTextInfo(stringWithRuby.body);
             if (textInfo.characterCount == 0)
             {
                 result = null;
@@ -267,18 +268,18 @@ namespace TSKT
             return true;
         }
 
-        public bool TryGetBodyQuadCountRubyQuadCountMap(out int[] result)
+        public bool TryGetBodyQuadCountRubyQuadCountMap(out int[]? result)
         {
             if (!TryGetBodyCharacterHasQuadList(out var list))
             {
                 result = null;
                 return false;
             }
-            result = stringWithRuby.GetBodyQuadCountRubyQuadCountMap(list);
+            result = stringWithRuby.GetBodyQuadCountRubyQuadCountMap(list!);
             return true;
         }
 
-        public bool TryGetBodyCharacterCountBodyQuadCountMap(out int[] result)
+        public bool TryGetBodyCharacterCountBodyQuadCountMap(out int[]? result)
         {
             if (!TryGetBodyCharacterHasQuadList(out var list))
             {
@@ -286,7 +287,7 @@ namespace TSKT
                 return false;
             }
 
-            result = new int[list.Length + 1];
+            result = new int[list!.Length + 1];
             var quadCount = 0;
             for (int i = 0; i < list.Length; ++i)
             {

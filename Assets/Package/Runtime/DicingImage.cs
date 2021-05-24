@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+#nullable enable
 
 namespace TSKT
 {
@@ -10,7 +11,7 @@ namespace TSKT
     public class DicingImage : MonoBehaviour
     {
         [SerializeField]
-        Image imagePrefab = default;
+        Image? imagePrefab = default;
 
         [SerializeField]
         bool useSpriteMesh = false;
@@ -25,7 +26,7 @@ namespace TSKT
         DicingSprite sprite = default;
 
         [SerializeField]
-        Image[] items = default;
+        Image?[] items = default!;
 
         public RectTransform RectTransform => (RectTransform)transform;
 
@@ -52,7 +53,7 @@ namespace TSKT
                 {
                     if (it)
                     {
-                        it.color = color;
+                        it!.color = color;
                     }
                 }
             }
@@ -120,12 +121,12 @@ namespace TSKT
                     Image item;
                     if (oldItems.Count > 0)
                     {
-                        item = oldItems[0];
+                        item = oldItems[0]!;
                         oldItems.RemoveAt(0);
                     }
                     else if (imagePrefab)
                     {
-                        item = Instantiate(imagePrefab, transform);
+                        item = Instantiate(imagePrefab, transform)!;
                     }
                     else
                     {
@@ -166,11 +167,11 @@ namespace TSKT
                 {
                     if (Application.isPlaying)
                     {
-                        Destroy(it.gameObject);
+                        Destroy(it!.gameObject);
                     }
                     else
                     {
-                        DestroyImmediate(it.gameObject);
+                        DestroyImmediate(it!.gameObject);
                     }
                 }
             }

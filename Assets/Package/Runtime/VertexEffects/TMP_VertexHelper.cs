@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 using TMPro;
 using UnityEngine;
+#nullable enable
 
 namespace TSKT
 {
@@ -12,7 +13,7 @@ namespace TSKT
     {
         readonly TMP_Text text;
 
-        Mesh mesh;
+        Mesh? mesh;
         Mesh Mesh
         {
             get
@@ -22,7 +23,7 @@ namespace TSKT
                     text.ForceMeshUpdate();
                     mesh = text.mesh;
                 }
-                return mesh;
+                return mesh!;
             }
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+#nullable enable
 
 namespace TSKT
 {
@@ -10,8 +11,8 @@ namespace TSKT
     [RequireComponent(typeof(Selectable))]
     public class ButtonPressedScale : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        Selectable selectable;
-        Selectable Selectable => selectable ? selectable : (selectable = GetComponent<Selectable>());
+        Selectable? selectable;
+        Selectable Selectable => selectable ? selectable! : (selectable = GetComponent<Selectable>());
 
         [SerializeField]
         Vector3 scale = new Vector3(0.9f, 0.9f, 0.9f);
@@ -24,7 +25,7 @@ namespace TSKT
 
         bool pressed;
         bool hovered;
-        Tweens.Scale tween;
+        Tweens.Scale? tween;
         Vector3 toScale = Vector3.one;
 
         public void OnPointerUp(PointerEventData eventData)

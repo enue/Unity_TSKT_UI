@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+#nullable enable
 
 namespace TSKT
 {
@@ -115,9 +116,9 @@ namespace TSKT
             readonly public int leftIndex;
             readonly public int rightIndex;
             readonly public string left;
-            readonly public string right;
+            readonly public string? right;
 
-            public Tag(int leftIndex, string left, int rightIndex, string right)
+            public Tag(int leftIndex, string left, int rightIndex, string? right)
             {
                 this.leftIndex = leftIndex;
                 this.left = left;
@@ -132,7 +133,7 @@ namespace TSKT
         readonly public string body;
         readonly public Tag[] tags;
 
-        public RichTextBuilder(string body, Ruby[] rubies, string joinedRubyText, Tag[] tags)
+        public RichTextBuilder(string body, Ruby[]? rubies, string? joinedRubyText, Tag[]? tags)
         {
             this.body = body ?? string.Empty;
             this.rubies = rubies ?? System.Array.Empty<Ruby>();

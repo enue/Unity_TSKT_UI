@@ -5,6 +5,7 @@ using System.Text;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+#nullable enable
 
 namespace TSKT.HyphenationJpns
 {
@@ -38,7 +39,7 @@ namespace TSKT.HyphenationJpns
         public string CharactersThatCanNotEndLine { get; set; } = DefaultHyphenation.CharactersThatCanNotEndLine;
         public string UnbreakabkeSequenceCharacters { get; set; } = DefaultHyphenation.UnbreakabkeSequenceCharacters;
 
-        Font cachedFont;
+        Font? cachedFont;
         int cachedFontSize;
         FontStyle cachedFontStyle;
 
@@ -162,7 +163,7 @@ namespace TSKT.HyphenationJpns
             FontStyle fontStyle,
             string message,
             bool supportRichText,
-            RangeInt[] disallowRanges = null)
+            RangeInt[]? disallowRanges = null)
         {
             var result = new List<int>();
 
@@ -266,7 +267,7 @@ namespace TSKT.HyphenationJpns
             return result;
         }
 
-        IEnumerable<StringBuilder> GetWordList(string tmpText, RangeInt[] unsplittableRanges)
+        IEnumerable<StringBuilder> GetWordList(string tmpText, RangeInt[]? unsplittableRanges)
         {
             var word = new StringBuilder();
 

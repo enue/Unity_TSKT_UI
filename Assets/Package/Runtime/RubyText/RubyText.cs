@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+#nullable enable
 
 namespace TSKT
 {
@@ -12,17 +13,11 @@ namespace TSKT
     {
         public const int VertexCountPerQuad = 4;
 
-        Text text;
-        Text Text
-        {
-            get
-            {
-                return text ? text : (text = GetComponent<Text>());
-            }
-        }
+        Text? text;
+        Text Text => text ? text! : text = GetComponent<Text>();
 
         [SerializeField]
-        Text bodyText = default;
+        Text? bodyText = default;
 
         [SerializeField]
         float positionY = 8f;
@@ -123,7 +118,7 @@ namespace TSKT
 
         (float left, float right, float y)[] GetBodyCharacterPositions()
         {
-            var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
+            var settings = bodyText!.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
             using (var generator = new TextGenerator(stringWithRuby.body.Length))
             {
@@ -149,7 +144,7 @@ namespace TSKT
 
         bool[] GetBodyCharacterHasQuadList()
         {
-            var settings = bodyText.GetGenerationSettings(bodyText.rectTransform.rect.size);
+            var settings = bodyText!.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
             using (var generator = new TextGenerator(stringWithRuby.body.Length))
             {

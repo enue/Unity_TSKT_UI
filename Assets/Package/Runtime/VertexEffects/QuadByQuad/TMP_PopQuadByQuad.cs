@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+#nullable enable
 
 #if TSKT_UI_SUPPORT_TEXTMESHPRO
 
