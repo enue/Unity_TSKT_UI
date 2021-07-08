@@ -22,7 +22,7 @@ namespace TSKT
             public void Dispose()
             {
                 owner.handlerIds.Remove(Id);
-                if (owner.handlerIds.Count == 0)
+                if (owner && owner.handlerIds.Count == 0)
                 {
                     owner.gameObject.SetActive(false);
                 }
