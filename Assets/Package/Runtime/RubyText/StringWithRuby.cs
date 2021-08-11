@@ -26,7 +26,7 @@ namespace TSKT
         public readonly string joinedRubyText;
         public readonly string body;
 
-        public StringWithRuby(string body, Ruby[] rubies, string joinedRubyText)
+        public StringWithRuby(string? body, Ruby[]? rubies, string? joinedRubyText)
         {
             this.body = body ?? string.Empty;
             this.rubies = rubies ?? System.Array.Empty<Ruby>();
@@ -133,7 +133,7 @@ namespace TSKT
         readonly public string body;
         readonly public Tag[] tags;
 
-        public RichTextBuilder(string body, Ruby[]? rubies, string? joinedRubyText, Tag[]? tags)
+        public RichTextBuilder(string? body, Ruby[]? rubies, string? joinedRubyText, Tag[]? tags)
         {
             this.body = body ?? string.Empty;
             this.rubies = rubies ?? System.Array.Empty<Ruby>();
@@ -407,7 +407,7 @@ namespace TSKT
             return new RichTextBuilder(newBody, newRubies.Array, newRubyText.ToString(), newTags.Array);
         }
 
-        readonly public RichTextBuilder InsertTag(int leftIndex, string left, int rightIndex, string right)
+        readonly public RichTextBuilder InsertTag(int leftIndex, string left, int rightIndex, string? right)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + 1);
 
@@ -486,7 +486,7 @@ namespace TSKT
             return Parse(stringWithRuby.body, stringWithRuby.rubies, stringWithRuby.joinedRubyText);
         }
 
-        public static RichTextBuilder Parse(string body, Ruby[] rubies, string joinedRubyText)
+        public static RichTextBuilder Parse(string body, Ruby[]? rubies, string? joinedRubyText)
         {
             var tagRanges = new List<RangeInt>();
             var tagElements = new List<(string name, string value, bool closing)>();
