@@ -486,6 +486,27 @@ namespace TSKT
             return Parse(stringWithRuby.body, stringWithRuby.rubies, stringWithRuby.joinedRubyText);
         }
 
+        public static RichTextBuilder Parse(string originalText, bool tag, bool ruby)
+        {
+            StringWithRuby stringWithRuby;
+            if (ruby)
+            {
+                stringWithRuby = StringWithRuby.Parse(originalText);
+            }
+            else
+            {
+                stringWithRuby = new StringWithRuby(originalText, null, null);
+            }
+            if (tag)
+            {
+                return Parse(stringWithRuby.body, stringWithRuby.rubies, stringWithRuby.joinedRubyText);
+            }
+            else
+            {
+                return new RichTextBuilder(stringWithRuby.body, stringWithRuby.rubies, stringWithRuby.joinedRubyText, null);
+            }
+        }
+
         public static RichTextBuilder Parse(string body, Ruby[]? rubies, string? joinedRubyText)
         {
             var tagRanges = new List<RangeInt>();

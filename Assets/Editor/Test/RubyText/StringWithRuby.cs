@@ -239,5 +239,19 @@ namespace TSKT.Tests
             Assert.AreEqual(body, text.body);
             Assert.AreEqual(taggedBody, text.ToStringWithRuby().body);
         }
+
+        [Test]
+        public void ParseOption()
+        {
+            var message = "{hoge:fuga}<color=red>piyo</color>";
+            var trueTrue = RichTextBuilder.Parse(message, tag: true, ruby: true);
+            Assert.AreEqual("hogepiyo", trueTrue.body);
+            var falseTrue = RichTextBuilder.Parse(message, tag: false, ruby: true);
+            Assert.AreEqual("hoge<color=red>piyo</color>", falseTrue.body);
+            var trueFalse = RichTextBuilder.Parse(message, tag: true, ruby: false);
+            Assert.AreEqual("{hoge:fuga}piyo", trueFalse.body);
+            var falseFalse = RichTextBuilder.Parse(message, tag: false, ruby: false);
+            Assert.AreEqual(message, falseFalse.body);
+        }
     }
 }
