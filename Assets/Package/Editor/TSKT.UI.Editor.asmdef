@@ -1,7 +1,8 @@
 {
     "name": "TSKT.UI.Editor",
+    "rootNamespace": "",
     "references": [
-        "TSKT.UI"
+        "GUID:a92393261d094104c94fb2ab02cddc45"
     ],
     "includePlatforms": [
         "Editor"
