@@ -135,3 +135,11 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.timeline from version 1.5.5 to 1.5.6
+
+=== Sun Sep  5 20:29:19 2021
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.test-framework from version 1.1.27 to 1.1.29
