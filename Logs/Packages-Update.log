@@ -143,3 +143,14 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.test-framework from version 1.1.27 to 1.1.29
+
+=== Sat Mar  5 14:18:07 2022
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ide.rider from version 3.0.7 to 3.0.12
+  com.unity.ide.visualstudio from version 2.0.11 to 2.0.14
+  com.unity.ide.vscode from version 1.2.4 to 1.2.5
+  com.unity.timeline from version 1.5.6 to 1.6.4
