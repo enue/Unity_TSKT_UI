@@ -32,6 +32,20 @@ namespace TSKT.Tests
         }
 
         [Test]
+        [TestCase("abc{def}ghi", "abc{def}ghi", "")]
+        [TestCase("abc{def{}ghi", "abc{def{}ghi", "")]
+        [TestCase("abc{def}g:hi", "abc{def}g:hi", "")]
+        [TestCase("abc{defghi", "abc{defghi", "")]
+        [TestCase("abc{de{f:g}hi", "abcde{fhi", "g")]
+        public void Parse2(string source, string body, string ruby)
+        {
+            var text = TSKT.RichTextBuilder.Parse(source);
+
+            Assert.AreEqual(body, text.body);
+            Assert.AreEqual(ruby, text.joinedRubyText);
+        }
+
+        [Test]
         public void Combine()
         {
             var hoge = TSKT.RichTextBuilder.Parse("{hoge:ほげ}");

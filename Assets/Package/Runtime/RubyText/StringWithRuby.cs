@@ -45,21 +45,30 @@ namespace TSKT
                 var beginIndex = originalText.IndexOf('{', currentIndex);
                 if (beginIndex < 0)
                 {
-                    if (rubies.Count == 0)
-                    {
-                        return new StringWithRuby(originalText, System.Array.Empty<Ruby>(), string.Empty);
-                    }
-                    bodyText.Append(originalText, currentIndex, originalText.Length - currentIndex);
+                    break;
+                }
+                var separatorIndex = originalText.IndexOf(':', beginIndex);
+                if (separatorIndex < 0)
+                {
                     break;
                 }
                 var endIndex = originalText.IndexOf('}', beginIndex);
+                if (endIndex < 0)
+                {
+                    break;
+                }
+                if (endIndex < separatorIndex)
+                {
+                    bodyText.Append(originalText, currentIndex, beginIndex - currentIndex);
+                    currentIndex = beginIndex + 1;
+                    continue;
+                }
 
                 bodyText.Append(originalText, currentIndex, beginIndex - currentIndex);
                 currentIndex = endIndex + 1;
 
-                var attributes = originalText.Substring(beginIndex + 1, endIndex - beginIndex - 1).Split(':');
-                var body = attributes[0];
-                var ruby = attributes[1];
+                var body = originalText.Substring(beginIndex + 1, separatorIndex - beginIndex - 1);
+                var ruby = originalText.Substring(separatorIndex + 1, endIndex - separatorIndex - 1);
 
                 var word = new Ruby(
                     textPosition: rubyText.Length,
@@ -70,6 +79,11 @@ namespace TSKT
                 bodyText.Append(body);
                 rubyText.Append(ruby);
             }
+            if (rubies.Count == 0)
+            {
+                return new StringWithRuby(originalText, System.Array.Empty<Ruby>(), string.Empty);
+            }
+            bodyText.Append(originalText, currentIndex, originalText.Length - currentIndex);
 
             return new StringWithRuby(bodyText.ToString(), rubies.ToArray(), rubyText.ToString());
         }
