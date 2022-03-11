@@ -54,6 +54,10 @@ namespace TSKT
             {
                 return;
             }
+            if (stringWithRuby.rubies.Length == 0)
+            {
+                return;
+            }
 
             var bodyCharacterPositions = GetBodyCharacterPositions();
             foreach (var ruby in stringWithRuby.rubies)
