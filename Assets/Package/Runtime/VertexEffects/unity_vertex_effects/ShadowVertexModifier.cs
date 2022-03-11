@@ -16,6 +16,7 @@ namespace TSKT
             }
             using (UnityEngine.Pool.ListPool<UIVertex>.Get(out var vertices))
             {
+                vertices.Clear();
                 vh.GetUIVertexStream(vertices);
                 ModifyMesh(vertices);
                 vh.Clear();

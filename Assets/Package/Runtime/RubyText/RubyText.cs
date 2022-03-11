@@ -126,6 +126,7 @@ namespace TSKT
 
                 using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
                 {
+                    characters.Clear();
                     generator.GetCharacters(characters);
 
                     var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
@@ -152,6 +153,7 @@ namespace TSKT
 
                 using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
                 {
+                    characters.Clear();
                     generator.GetCharacters(characters);
 
                     var builder = new ArrayBuilder<bool>(characters.Count);
