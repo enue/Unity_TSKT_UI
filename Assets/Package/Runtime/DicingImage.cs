@@ -26,7 +26,7 @@ namespace TSKT
         DicingSprite sprite = default;
 
         [SerializeField]
-        Image?[] items = default!;
+        List<Image?> items = default!;
 
         public RectTransform RectTransform => (RectTransform)transform;
 
@@ -67,22 +67,18 @@ namespace TSKT
 
         public void Rebuild()
         {
-            var oldItems = items.ToList();
+            var position = 0;
             try
             {
                 if (sprite.sprites == null || sprite.sprites.Length == 0)
                 {
-                    items = System.Array.Empty<Image>();
                     return;
                 }
 
                 if (sprite.sprites.Any(_ => !_))
                 {
-                    items = System.Array.Empty<Image>();
                     return;
                 }
-
-                var itemBuilder = new ArrayBuilder<Image>(sprite.sprites.Length);
 
                 var spriteSize = sprite.Size;
                 Rect areaInImage;
@@ -118,25 +114,29 @@ namespace TSKT
 
                 foreach (var it in sprite.sprites.Zip(sprite.SpriteRects, (sprite, rect) => (sprite, rect)))
                 {
-                    Image item;
-                    if (oldItems.Count > 0)
+                    if (items.Count == position)
                     {
-                        item = oldItems[0]!;
-                        oldItems.RemoveAt(0);
+                        items.Add(null);
                     }
-                    else if (imagePrefab)
+                    var item = items[position];
+                    if (!item)
                     {
-                        item = Instantiate(imagePrefab, transform)!;
+                        if (imagePrefab)
+                        {
+                            item = Instantiate(imagePrefab, transform)!;
+                            items[position] = item;
+                        }
+                        else
+                        {
+                            var gameObject = new GameObject("sliced sprite");
+                            gameObject.transform.SetParent(transform, worldPositionStays: false);
+                            item = gameObject.AddComponent<Image>();
+                            item.raycastTarget = false;
+                            items[position] = item;
+                        }
                     }
-                    else
-                    {
-                        var gameObject = new GameObject("sliced sprite");
-                        gameObject.transform.SetParent(transform, worldPositionStays: false);
-                        item = gameObject.AddComponent<Image>();
-                        item.raycastTarget = false;
-
-                    }
-                    item.sprite = it.sprite;
+                    ++position;
+                    item!.sprite = it.sprite;
                     item.color = color;
                     item.useSpriteMesh = useSpriteMesh;
 
@@ -156,24 +156,26 @@ namespace TSKT
                     item.rectTransform.offsetMax = new Vector2(0f, 0f);
 
                     item.gameObject.SetActive(true);
-                    itemBuilder.Add(item);
                 }
-
-                items = itemBuilder.Array;
             }
             finally
             {
-                foreach (var it in oldItems)
+                for (int i = position; i < items.Count; ++i)
                 {
-                    if (Application.isPlaying)
+                    var it = items[i];
+                    if (it)
                     {
-                        Destroy(it!.gameObject);
-                    }
-                    else
-                    {
-                        DestroyImmediate(it!.gameObject);
+                        if (Application.isPlaying)
+                        {
+                            Destroy(it!.gameObject);
+                        }
+                        else
+                        {
+                            DestroyImmediate(it!.gameObject);
+                        }
                     }
                 }
+                items.RemoveRange(position, items.Count - position);
             }
         }
 

@@ -200,6 +200,8 @@ TextureImporter:
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -208,12 +210,12 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: -1
-    aniso: -1
-    mipBias: -100
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
     wrapU: 1
     wrapV: 1
-    wrapW: -1
+    wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -231,9 +233,12 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+  ignorePngGamma: 0
   applyGammaDecoding: 0
   platformSettings:
   - serializedVersion: 3
@@ -1263,6 +1268,53 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      CandyRockStar_18: -2363689920190648729
+      CandyRockStar_42: -6163497775694835454
+      CandyRockStar_5: 8775349265100111846
+      CandyRockStar_21: 2634837760682916094
+      CandyRockStar_25: 2651709111004799059
+      CandyRockStar_8: 1268547809267380096
+      CandyRockStar_39: -6517664456301775340
+      CandyRockStar_23: -3185078464278022029
+      CandyRockStar_44: -5719085179939881998
+      CandyRockStar_1: 6643730889222316675
+      CandyRockStar_7: -3137140848414442978
+      CandyRockStar_3: 7165048287008031690
+      CandyRockStar_11: 2465612284468944352
+      CandyRockStar_27: 1334209191440629788
+      CandyRockStar_38: -2314153805783052604
+      CandyRockStar_41: -6482462530582765853
+      CandyRockStar_10: -2385899918597496509
+      CandyRockStar_36: -6063401407064190165
+      CandyRockStar_13: 5559811403864029677
+      CandyRockStar_2: -6742307942341899891
+      CandyRockStar_33: 5651112237198298658
+      CandyRockStar_15: -1892679340928106596
+      CandyRockStar_45: 5263986036901313315
+      CandyRockStar_32: -2879469090683254648
+      CandyRockStar_30: -2486787004074709838
+      CandyRockStar_20: 2611966768985625127
+      CandyRockStar_28: -5937756484425968216
+      CandyRockStar_0: 873386588904902203
+      CandyRockStar_9: -6339301222628688637
+      CandyRockStar_29: 5366044414541773604
+      CandyRockStar_4: 8815594294495843469
+      CandyRockStar_43: -8909414494664968277
+      CandyRockStar_37: 3881788388532833410
+      CandyRockStar_34: 1484826320131341475
+      CandyRockStar_19: -1315850190684313451
+      CandyRockStar_12: -1457904428154459681
+      CandyRockStar_16: -6277217914277217649
+      CandyRockStar_14: 3256497209534108883
+      CandyRockStar_31: -8420913135568246817
+      CandyRockStar_6: -1680960856397553693
+      CandyRockStar_24: -8511784747008124674
+      CandyRockStar_40: -5888656508865649013
+      CandyRockStar_17: -7845257070035703550
+      CandyRockStar_35: 189544966585771161
+      CandyRockStar_22: -4631701256879107971
+      CandyRockStar_26: 5877998025161861507
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
