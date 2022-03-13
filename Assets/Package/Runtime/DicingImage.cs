@@ -35,11 +35,7 @@ namespace TSKT
             get => sprite;
             set
             {
-                if (sprite.sprites != value.sprites)
-                {
-                    sprite = value;
-                    Rebuild();
-                }
+                SetSprite(value, forceRebuild: false);
             }
         }
 
@@ -56,6 +52,15 @@ namespace TSKT
                         it!.color = color;
                     }
                 }
+            }
+        }
+
+        public void SetSprite(DicingSprite sprite, bool forceRebuild = false)
+        {
+            if (forceRebuild || this.sprite.sprites != sprite.sprites)
+            {
+                this.sprite = sprite;
+                Rebuild();
             }
         }
 
