@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 #nullable enable
+using System;
 
 namespace TSKT
 {
     public class TMP_VertexHelper
     {
+        const int VertexCountPerQuad = 4;
         readonly TMP_Text text;
 
         Mesh? mesh;
@@ -41,21 +43,18 @@ namespace TSKT
             }
         }
 
-        readonly List<Vector3> vertices = new List<Vector3>();
+        readonly List<Vector3> vertices = new();
         public List<Vector3> Vertices
         {
             get
             {
-                if (!verticesModified)
+                if (vertices.Count == 0)
                 {
                     Mesh.GetVertices(vertices);
-                    verticesModified = true;
                 }
                 return vertices;
             }
         }
-
-        bool verticesModified = false;
         bool colorsModified = false;
 
         public TMP_VertexHelper(TMP_Text text)
@@ -63,9 +62,43 @@ namespace TSKT
             this.text = text;
         }
 
+        public RangeInt GetVertexRangeOfQuad(int index)
+        {
+            return new RangeInt(index * VertexCountPerQuad, VertexCountPerQuad);
+        }
+        public Bounds GetQuadBounds(int index)
+        {
+            var minX = float.MaxValue;
+            var maxX = float.MinValue;
+            var minY = float.MaxValue;
+            var maxY = float.MinValue;
+            var minZ = float.MaxValue;
+            var maxZ = float.MinValue;
+            for (int i = 0; i < VertexCountPerQuad; ++i)
+            {
+                var v = Vertices[index * VertexCountPerQuad + i];
+                minX = Mathf.Min(minX, v.x);
+                maxX = Mathf.Max(maxX, v.x);
+                minY = Mathf.Min(minY, v.y);
+                maxY = Mathf.Max(maxY, v.y);
+                minZ = Mathf.Min(minZ, v.z);
+                maxZ = Mathf.Max(maxZ, v.z);
+            }
+
+            return new Bounds(
+                new Vector3(
+                    (maxX + minX) / 2f,
+                    (maxY + minY) / 2f,
+                    (maxZ + minZ) / 2f),
+                new Vector3(
+                    maxX - minX,
+                    maxY - minY,
+                    maxZ - minZ));
+        }
+
         public void Consume()
         {
-            if (verticesModified)
+            if (vertices.Count > 0)
             {
                 Mesh.SetVertices(vertices);
             }
@@ -73,12 +106,12 @@ namespace TSKT
             {
                 Mesh.SetColors(colors);
             }
-            if (verticesModified || colorsModified)
+            if (vertices.Count > 0 || colorsModified)
             {
                 text.UpdateGeometry(Mesh, 0);
             }
 
-            verticesModified = false;
+            vertices.Clear();
             colorsModified = false;
             mesh = null;
         }

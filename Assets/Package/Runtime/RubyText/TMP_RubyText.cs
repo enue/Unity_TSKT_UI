@@ -16,13 +16,7 @@ namespace TSKT
         public const int VertexCountPerQuad = 4;
 
         TMPro.TMP_Text? text;
-        TMPro.TMP_Text Text
-        {
-            get
-            {
-                return text ? text! : (text = GetComponent<TMPro.TMP_Text>());
-            }
-        }
+        public TMPro.TMP_Text Text => text ? text! : (text = GetComponent<TMPro.TMP_Text>());
 
         [SerializeField]
         TMPro.TMP_Text? bodyText = default;
@@ -125,9 +119,9 @@ namespace TSKT
             var vertexCount = rubyVertices.Vertices.Count;
 
             float rubyBoundsLeft;
-            float rubyBoundsRight;
             float advance;
             {
+                float rubyBoundsRight;
                 var rubyWidth = 0f;
                 var lastQuadWidth = 0f;
                 for (int i = 0; i < rubyLength; ++i)
@@ -140,15 +134,7 @@ namespace TSKT
                         }
                     }
 
-                    var minX = float.MaxValue;
-                    var maxX = float.MinValue;
-                    for (int j = 0; j < VertexCountPerQuad; ++j)
-                    {
-                        var index = j + (i + rubyIndex) * VertexCountPerQuad;
-                        minX = Mathf.Min(minX, rubyVertices.Vertices[index].x);
-                        maxX = Mathf.Max(maxX, rubyVertices.Vertices[index].x);
-                    }
-                    var quadWidth = maxX - minX;
+                    var quadWidth = rubyVertices.GetQuadBounds(i + rubyIndex).size.x;
                     rubyWidth += quadWidth;
 
                     if (i == rubyLength - 1)
@@ -197,30 +183,20 @@ namespace TSKT
 
                 var toPosition = new Vector2(position, bodyBounds.yMax + positionY);
 
-                var quadAverageY = 0f;
-                var quadLeft = float.MaxValue;
-                var quadRight = float.MinValue;
-                for (int j = 0; j < VertexCountPerQuad; ++j)
-                {
-                    var index = (rubyIndex + i) * VertexCountPerQuad + j;
-                    quadAverageY += rubyVertices.Vertices[index].y;
-                    quadRight = Mathf.Max(quadRight, rubyVertices.Vertices[index].x);
-                    quadLeft = Mathf.Min(quadLeft, rubyVertices.Vertices[index].x);
-                }
-                quadAverageY /= VertexCountPerQuad;
-                var fromPosition = new Vector2(quadLeft, quadAverageY);
+                var bounds = rubyVertices.GetQuadBounds(rubyIndex + i);
+                var fromPosition = new Vector2(bounds.min.x, bounds.center.y);
                 var move = toPosition - fromPosition;
 
-                for (int j = 0; j < VertexCountPerQuad; ++j)
+                var vertexRange = rubyVertices.GetVertexRangeOfQuad(rubyIndex + i);
+                for (int index = vertexRange.start; index < vertexRange.end; ++index)
                 {
-                    var index = (rubyIndex + i) * VertexCountPerQuad + j;
                     var vertex = rubyVertices.Vertices[index];
                     vertex.x += move.x;
                     vertex.y += move.y;
                     rubyVertices.Vertices[index] = vertex;
                 }
 
-                position += (quadRight - quadLeft) * advance;
+                position += bounds.size.x * advance;
             }
         }
 
