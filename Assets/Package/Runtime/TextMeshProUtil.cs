@@ -23,15 +23,15 @@ namespace TSKT
             }
             else
             {
-                var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true)
-                    .Where(_ => _ != target && _.font == target.font)
-                    .Select(_ => (label: _, text: _.text))
-                    .ToArray();
+                var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
                 target.font.ClearFontAssetData();
                 target.SetText(value);
-                foreach (var (label, text) in targetTexts)
+                foreach (var it in targetTexts)
                 {
-                    label.SetText(text);
+                    if (it != target)
+                    {
+                        it.ForceMeshUpdate();
+                    }
                 }
             }
         }
