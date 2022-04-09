@@ -17,21 +17,26 @@ namespace TSKT
                 target.SetText(value);
                 return;
             }
+
             if (target.font.TryAddCharacters(value))
             {
                 target.SetText(value);
             }
             else
             {
-                var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
-                target.font.ClearFontAssetData();
                 target.SetText(value);
-                foreach (var it in targetTexts)
+                RefreshFontAssetData(target.font);
+            }
+        }
+        public static void RefreshFontAssetData(TMPro.TMP_FontAsset font)
+        {
+            font.ClearFontAssetData();
+            var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
+            foreach (var it in targetTexts)
+            {
+                if (it.font == font)
                 {
-                    if (it != target)
-                    {
-                        it.ForceMeshUpdate();
-                    }
+                    it.ForceMeshUpdate();
                 }
             }
         }
