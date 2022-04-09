@@ -12,6 +12,11 @@ namespace TSKT
         // テクスチャがいっぱいになった時にFontAsset.ClearFontAssetDataを呼ぶ
         public static void SetText(TMPro.TMP_Text target, string value)
         {
+            if (target.font.atlasPopulationMode != TMPro.AtlasPopulationMode.Dynamic)
+            {
+                target.SetText(value);
+                return;
+            }
             if (target.font.TryAddCharacters(value))
             {
                 target.SetText(value);
