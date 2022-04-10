@@ -12,13 +12,7 @@ namespace TSKT
         // テクスチャがいっぱいになった時にFontAsset.ClearFontAssetDataを呼ぶ
         public static void SetText(TMPro.TMP_Text target, string value)
         {
-            if (target.font.atlasPopulationMode != TMPro.AtlasPopulationMode.Dynamic)
-            {
-                target.SetText(value);
-                return;
-            }
-
-            if (target.font.HasCharacters(value, out _, searchFallbacks: false, tryAddCharacter: true))
+            if (target.font.HasCharacters(value, out _, searchFallbacks: true, tryAddCharacter: true))
             {
                 target.SetText(value);
             }
@@ -30,7 +24,17 @@ namespace TSKT
         }
         public static void RefreshFontAssetData(TMPro.TMP_FontAsset font)
         {
-            font.ClearFontAssetData();
+            if (font.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic)
+            {
+                font.ClearFontAssetData();
+            }
+            foreach (var it in font.fallbackFontAssetTable)
+            {
+                if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic)
+                {
+                    it.ClearFontAssetData();
+                }
+            }
             var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
             foreach (var it in targetTexts)
             {
