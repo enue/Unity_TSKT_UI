@@ -24,23 +24,28 @@ namespace TSKT
         }
         public static void RefreshFontAssetData(TMPro.TMP_FontAsset font)
         {
-            if (font.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic)
+            using (UnityEngine.Pool.ListPool<TMPro.TMP_FontAsset>.Get(out var clearedFonts))
             {
-                font.ClearFontAssetData();
-            }
-            foreach (var it in font.fallbackFontAssetTable)
-            {
-                if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic)
+                if (font.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic)
                 {
-                    it.ClearFontAssetData();
+                    font.ClearFontAssetData();
+                    clearedFonts.Add(font);
                 }
-            }
-            var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
-            foreach (var it in targetTexts)
-            {
-                if (it.font == font)
+                foreach (var it in font.fallbackFontAssetTable)
                 {
-                    it.ForceMeshUpdate();
+                    if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic)
+                    {
+                        it.ClearFontAssetData();
+                        clearedFonts.Add(it);
+                    }
+                }
+                var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
+                foreach (var it in targetTexts)
+                {
+                    if (clearedFonts.Contains(it.font) || clearedFonts.Intersect(it.font.fallbackFontAssetTable).Any())
+                    {
+                        it.ForceMeshUpdate();
+                    }
                 }
             }
         }
