@@ -42,9 +42,12 @@ namespace TSKT
                 var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
                 foreach (var it in targetTexts)
                 {
-                    if (clearedFonts.Contains(it.font) || clearedFonts.Intersect(it.font.fallbackFontAssetTable).Any())
+                    if (it.font)
                     {
-                        it.ForceMeshUpdate();
+                        if (clearedFonts.Contains(it.font) || clearedFonts.Intersect(it.font.fallbackFontAssetTable).Any())
+                        {
+                            it.ForceMeshUpdate();
+                        }
                     }
                 }
             }
