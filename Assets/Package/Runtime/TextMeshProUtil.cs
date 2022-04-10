@@ -18,7 +18,7 @@ namespace TSKT
                 return;
             }
 
-            if (target.font.TryAddCharacters(value))
+            if (target.font.HasCharacters(value, out _, searchFallbacks: false, tryAddCharacter: true))
             {
                 target.SetText(value);
             }
