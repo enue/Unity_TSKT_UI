@@ -43,7 +43,7 @@ namespace TSKT
                 }
                 if (clearedFonts.Count > 0)
                 {
-                    var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: true);
+                    var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: false);
                     foreach (var it in targetTexts)
                     {
                         if (it.font)
