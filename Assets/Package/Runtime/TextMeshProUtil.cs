@@ -24,6 +24,8 @@ namespace TSKT
         }
         public static void RefreshFontAssetData(TMPro.TMP_FontAsset font)
         {
+            bool clearedGlobalFallback = false;
+
             using (UnityEngine.Pool.ListPool<TMPro.TMP_FontAsset>.Get(out var clearedFonts))
             {
                 if (font.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
@@ -41,12 +43,27 @@ namespace TSKT
                         clearedFonts.Add(it);
                     }
                 }
-                if (clearedFonts.Count > 0)
+                foreach (var it in TMPro.TMP_Settings.fallbackFontAssets)
+                {
+                    if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
+                        && !font.isMultiAtlasTexturesEnabled)
+                    {
+                        it.ClearFontAssetData();
+                        clearedFonts.Add(it);
+                        clearedGlobalFallback = true;
+                    }
+                }
+
+                if (clearedGlobalFallback || clearedFonts.Count > 0)
                 {
                     var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: false);
                     foreach (var it in targetTexts)
                     {
-                        if (it.font)
+                        if (clearedGlobalFallback)
+                        {
+                            it.ForceMeshUpdate();
+                        }
+                        else if (it.font)
                         {
                             if (clearedFonts.Contains(it.font) || clearedFonts.Intersect(it.font.fallbackFontAssetTable).Any())
                             {
