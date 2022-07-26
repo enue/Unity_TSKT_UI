@@ -64,6 +64,14 @@ namespace TSKT
             Refresh();
         }
 
+        void OnDisable()
+        {
+            hovered = false;
+            tween?.Halt();
+            tween = null;
+            transform.localScale = Vector3.one;
+        }
+
         void Refresh()
         {
             Vector3 to;
