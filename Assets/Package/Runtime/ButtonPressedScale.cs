@@ -23,6 +23,20 @@ namespace TSKT
         [SerializeField]
         float tweenDuration = 0.1f;
 
+        [SerializeField]
+        GameObject? target;
+        GameObject Target
+        {
+            get
+            {
+                if (target)
+                {
+                    return target!;
+                }
+                return gameObject;
+            }
+        }
+
         bool pressed;
         bool hovered;
         Tweens.Scale? tween;
@@ -69,7 +83,7 @@ namespace TSKT
             hovered = false;
             tween?.Halt();
             tween = null;
-            transform.localScale = Vector3.one;
+            Target.transform.localScale = Vector3.one;
         }
 
         void Refresh()
@@ -92,7 +106,7 @@ namespace TSKT
             {
                 toScale = to;
                 tween?.Halt();
-                tween = Tween.Scale(gameObject, tweenDuration, scaledTime: false)
+                tween = Tween.Scale(Target, tweenDuration, scaledTime: false)
                     .To(to);
             }
         }
