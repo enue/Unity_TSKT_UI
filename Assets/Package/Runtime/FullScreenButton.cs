@@ -62,5 +62,13 @@ namespace TSKT
                 .Distinct()
                 .ToArray();
         }
+
+        public static Vector2Int GetNearestResolutionFromCurrent(out Vector2Int[] resolutions)
+        {
+            resolutions = Screen.resolutions.Select(_ => new Vector2Int(_.width, _.height)).Distinct().ToArray();
+            var current = new Vector2Int(Screen.width, Screen.height);
+            var nearest = resolutions.OrderBy(_ => Vector2Int.Distance(_, current)).First();
+            return nearest;
+        }
     }
 }
