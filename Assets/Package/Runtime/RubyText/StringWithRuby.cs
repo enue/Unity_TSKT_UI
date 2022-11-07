@@ -125,7 +125,7 @@ namespace TSKT
         }
     }
 
-    public readonly struct RichTextBuilder
+    public readonly ref struct RichTextBuilder
     {
         public readonly struct Tag
         {
@@ -155,9 +155,9 @@ namespace TSKT
             }
         }
 
-        readonly ReadOnlyMemory<Ruby> rubies;
+        readonly ReadOnlySpan<Ruby> rubies;
         public readonly string body;
-        public readonly ReadOnlyMemory<Tag> tags;
+        public readonly ReadOnlySpan<Tag> tags;
 
         RichTextBuilder(string? body)
         {
@@ -177,11 +177,11 @@ namespace TSKT
                     it.bodyStringRange);
                 rubyBuilder.Add(ruby);
             }
-            this.rubies = rubyBuilder.writer.WrittenMemory;
+            this.rubies = rubyBuilder.writer.WrittenSpan;
             tags = default;
         }
 
-        RichTextBuilder(string? body, ReadOnlyMemory<Ruby> rubies, ReadOnlyMemory<Tag> tags)
+        RichTextBuilder(string? body, ReadOnlySpan<Ruby> rubies, ReadOnlySpan<Tag> tags)
         {
             this.body = body ?? string.Empty;
             this.rubies = rubies;
@@ -190,7 +190,7 @@ namespace TSKT
 
         public static RichTextBuilder Combine(in RichTextBuilder left, in RichTextBuilder right)
         {
-            ReadOnlyMemory<Ruby> newRubies;
+            ReadOnlySpan<Ruby> newRubies;
 
             if (right.rubies.Length == 0)
             {
@@ -200,9 +200,9 @@ namespace TSKT
             {
                 var rubyBuilder = new ArrayBuilder<Ruby>(left.rubies.Length + right.rubies.Length);
 
-                rubyBuilder.writer.Write(left.rubies.Span);
+                rubyBuilder.writer.Write(left.rubies);
 
-                foreach (var it in right.rubies.Span)
+                foreach (var it in right.rubies)
                 {
                     var ruby = new Ruby(
                         text: it.text,
@@ -211,10 +211,10 @@ namespace TSKT
                     rubyBuilder.Add(ruby);
                 }
 
-                newRubies = rubyBuilder.writer.WrittenMemory;
+                newRubies = rubyBuilder.writer.WrittenSpan;
             }
 
-            ReadOnlyMemory<Tag> newTags;
+            ReadOnlySpan<Tag> newTags;
             if (right.tags.Length == 0)
             {
                 newTags = left.tags;
@@ -222,8 +222,8 @@ namespace TSKT
             else
             {
                 var tagBuilder = new ArrayBuilder<Tag>(left.tags.Length + right.tags.Length);
-                tagBuilder.writer.Write(left.tags.Span);
-                foreach (var it in right.tags.Span)
+                tagBuilder.writer.Write(left.tags);
+                foreach (var it in right.tags)
                 {
                     var t = new Tag(
                         leftIndex: it.leftIndex + left.body.Length,
@@ -232,7 +232,7 @@ namespace TSKT
                         right: it.right);
                     tagBuilder.Add(t);
                 }
-                newTags = tagBuilder.writer.WrittenMemory;
+                newTags = tagBuilder.writer.WrittenSpan;
             }
 
             return new RichTextBuilder(left.body + right.body, newRubies, newTags);
@@ -245,7 +245,7 @@ namespace TSKT
 
             // ルビの移動
             var newRubies = new ArrayBuilder<Ruby>(rubies.Length);
-            foreach (var it in rubies.Span)
+            foreach (var it in rubies)
             {
                 var newBodyRange = TrimRange(it.bodyStringRange, removeRange);
                 if (newBodyRange.length > 0)
@@ -259,7 +259,7 @@ namespace TSKT
 
             // タグの移動
             var newTags = new ArrayBuilder<Tag>(tags.Length);
-            foreach (var it in tags.Span)
+            foreach (var it in tags)
             {
                 var range = TrimRange(
                     new RangeInt(it.leftIndex, it.rightIndex - it.leftIndex),
@@ -275,8 +275,8 @@ namespace TSKT
             }
 
             return new RichTextBuilder(newBody,
-                newRubies.writer.WrittenMemory,
-                newTags.writer.WrittenMemory);
+                newRubies.writer.WrittenSpan,
+                newTags.writer.WrittenSpan);
         }
 
         readonly public RichTextBuilder Substring(int startIndex, int length)
@@ -335,13 +335,13 @@ namespace TSKT
             {
                 if (i < index)
                 {
-                    newRubies[i] = rubies.Span[i];
+                    newRubies[i] = rubies[i];
                 }
                 else if (i > index)
                 {
                     newRubies[i - 1] = new Ruby(
-                        text: rubies.Span[i].text,
-                        bodyStringRange: rubies.Span[i].bodyStringRange);
+                        text: rubies[i].text,
+                        bodyStringRange: rubies[i].bodyStringRange);
                 }
             }
 
@@ -354,7 +354,7 @@ namespace TSKT
 
             // ルビ
             var newRubies = new ArrayBuilder<Ruby>(rubies.Length + value.rubies.Length);
-            foreach (var it in rubies.Span)
+            foreach (var it in rubies)
             {
                 if (it.bodyStringRange.end <= startIndex)
                 {
@@ -371,14 +371,14 @@ namespace TSKT
             }
 
             // 挿入部分
-            foreach (var it in value.rubies.Span)
+            foreach (var it in value.rubies)
             {
                 newRubies.Add(new Ruby(
                     it.text,
                     new RangeInt(it.bodyStringRange.start + startIndex, it.bodyStringRange.length)));
             }
 
-            foreach (var it in rubies.Span)
+            foreach (var it in rubies)
             {
                 if (it.bodyStringRange.start >= startIndex)
                 {
@@ -390,7 +390,7 @@ namespace TSKT
 
             // tag
             var newTags = new ArrayBuilder<Tag>(tags.Length + value.tags.Length);
-            foreach (var it in tags.Span)
+            foreach (var it in tags)
             {
                 if (it.rightIndex <= startIndex)
                 {
@@ -414,7 +414,7 @@ namespace TSKT
                         it.right));
                 }
             }
-            foreach (var it in value.tags.Span)
+            foreach (var it in value.tags)
             {
                 newTags.Add(new Tag(
                     it.leftIndex + startIndex,
@@ -423,17 +423,17 @@ namespace TSKT
                     it.right));
             }
 
-            return new RichTextBuilder(newBody, newRubies.writer.WrittenMemory, newTags.writer.WrittenMemory);
+            return new RichTextBuilder(newBody, newRubies.writer.WrittenSpan, newTags.writer.WrittenSpan);
         }
 
         readonly public RichTextBuilder InsertTag(int leftIndex, string left, int rightIndex, string? right)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + 1);
 
-            tagBuilder.writer.Write(tags.Span);
+            tagBuilder.writer.Write(tags);
             tagBuilder.Add(new Tag(leftIndex, left, rightIndex, right));
 
-            return new RichTextBuilder(body, rubies, tagBuilder.writer.WrittenMemory);
+            return new RichTextBuilder(body, rubies, tagBuilder.writer.WrittenSpan);
         }
 
         public readonly RichTextBuilder InsertTags(params Tag[] array)
@@ -444,10 +444,10 @@ namespace TSKT
         public readonly RichTextBuilder InsertTags(ReadOnlySpan<Tag> array)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + array.Length);
-            tagBuilder.writer.Write(tags.Span);
+            tagBuilder.writer.Write(tags);
             tagBuilder.writer.Write(array);
 
-            return new RichTextBuilder(body, rubies, tagBuilder.writer.WrittenMemory);
+            return new RichTextBuilder(body, rubies, tagBuilder.writer.WrittenSpan);
         }
 
         public readonly RichTextBuilder ClearTags()
@@ -462,7 +462,7 @@ namespace TSKT
             if (tags.Length > 0)
             {
                 var tagCount = 0;
-                foreach (var it in tags.Span)
+                foreach (var it in tags)
                 {
                     ++tagCount;
                     if (it.right != null)
@@ -474,7 +474,7 @@ namespace TSKT
                 var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tagCount);
                 for (int i = 0; i < tags.Length; ++i)
                 {
-                    var tag = tags.Span[i];
+                    var tag = tags[i];
                     tagElements.Add((tag.leftIndex, tag.left, subSort: -i));
                     if (tag.right != null)
                     {
@@ -496,14 +496,14 @@ namespace TSKT
 
             var rubyBuilder = new ArrayBuilder<TSKT.Ruby>(result.rubies.Length);
             var writer = new ArrayBufferWriter<char>();
-            foreach (var it in result.rubies.Span)
+            foreach (var it in result.rubies)
             {
                 rubyBuilder.Add(new TSKT.Ruby(writer.WrittenCount, it.text.Length, it.bodyStringRange));
                 writer.Write(it.text.Span);
             }
 
             return new StringWithRuby(result.body,
-                rubyBuilder.writer.WrittenMemory.ToArray(),
+                rubyBuilder.writer.WrittenSpan.ToArray(),
                 new string(writer.WrittenSpan));
         }
 

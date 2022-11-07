@@ -65,7 +65,7 @@ namespace TSKT.Tests
             Assert.AreEqual(4, text.ClearTags().ToStringWithRuby().rubies[1].bodyStringRange.length);
 
             Assert.AreEqual(1, text.tags.Length);
-            Assert.AreEqual(5, text.tags.Span[0].leftIndex);
+            Assert.AreEqual(5, text.tags[0].leftIndex);
         }
         [Test]
         public void Substring()
@@ -90,8 +90,8 @@ namespace TSKT.Tests
             Assert.AreEqual(6, sub.ClearTags().ToStringWithRuby().rubies[0].bodyStringRange.length);
 
             Assert.AreEqual(2, sub.tags.Length);
-            Assert.AreEqual(0, sub.tags.Span[0].leftIndex);
-            Assert.AreEqual(4, sub.tags.Span[1].leftIndex);
+            Assert.AreEqual(0, sub.tags[0].leftIndex);
+            Assert.AreEqual(4, sub.tags[1].leftIndex);
         }
         [Test]
         public void RemoveRubyAt()
@@ -173,8 +173,8 @@ namespace TSKT.Tests
                 Assert.AreEqual(6, inserted.ToStringWithRuby().rubies[3].bodyStringRange.length);
 
                 Assert.AreEqual(2, inserted.tags.Length);
-                Assert.AreEqual(21, inserted.tags.Span[0].leftIndex);
-                Assert.AreEqual(5, inserted.tags.Span[1].leftIndex);
+                Assert.AreEqual(21, inserted.tags[0].leftIndex);
+                Assert.AreEqual(5, inserted.tags[1].leftIndex);
             }
         }
         [Test]
