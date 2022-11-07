@@ -142,7 +142,7 @@ namespace TSKT
                         var y = character.cursorPos.y * scale;
                         builder.Add((left, right, y));
                     }
-                    return builder.Array;
+                    return builder.writer.WrittenSpan.ToArray();
                 }
             }
         }
@@ -165,7 +165,7 @@ namespace TSKT
                     {
                         builder.Add(character.charWidth != 0f);
                     }
-                    return builder.Array;
+                    return builder.writer.WrittenSpan.ToArray();
                 }
             }
         }

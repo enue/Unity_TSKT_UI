@@ -14,21 +14,21 @@ namespace TSKT.Tests
             var message = "{上等だ:ハイ・クラス}！！\n{邪神広告機構:じゃろォ～～～}～～～ッ！！";
             var text = TSKT.RichTextBuilder.Parse(message);
 
-            Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！", text.body);
-            Assert.AreEqual("ハイ・クラスじゃろォ～～～", text.joinedRubyText);
+            Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！", text.ToStringWithRuby().body);
+            Assert.AreEqual("ハイ・クラスじゃろォ～～～", text.ToStringWithRuby().joinedRubyText);
 
-            Assert.AreEqual(2, text.rubies.Length);
+            Assert.AreEqual(2, text.ToStringWithRuby().rubies.Length);
 
-            Assert.AreEqual(0, text.rubies[0].textPosition);
-            Assert.AreEqual(6, text.rubies[0].textLength);
-            Assert.AreEqual(0, text.rubies[0].bodyStringRange.start);
-            Assert.AreEqual(3, text.rubies[0].bodyStringRange.length);
+            Assert.AreEqual(0, text.ToStringWithRuby().rubies[0].textPosition);
+            Assert.AreEqual(6, text.ToStringWithRuby().rubies[0].textLength);
+            Assert.AreEqual(0, text.ToStringWithRuby().rubies[0].bodyStringRange.start);
+            Assert.AreEqual(3, text.ToStringWithRuby().rubies[0].bodyStringRange.length);
 
-            Assert.AreEqual(6, text.rubies[1].textPosition);
-            Assert.AreEqual(7, text.rubies[1].textLength);
+            Assert.AreEqual(6, text.ToStringWithRuby().rubies[1].textPosition);
+            Assert.AreEqual(7, text.ToStringWithRuby().rubies[1].textLength);
 
-            Assert.AreEqual(6, text.rubies[1].bodyStringRange.start);
-            Assert.AreEqual(6, text.rubies[1].bodyStringRange.length);
+            Assert.AreEqual(6, text.ToStringWithRuby().rubies[1].bodyStringRange.start);
+            Assert.AreEqual(6, text.ToStringWithRuby().rubies[1].bodyStringRange.length);
         }
 
         [Test]
@@ -39,7 +39,7 @@ namespace TSKT.Tests
         [TestCase("abc{de{f:g}hi", "abcde{fhi", "g")]
         public void Parse2(string source, string body, string ruby)
         {
-            var text = TSKT.RichTextBuilder.Parse(source);
+            var text = TSKT.RichTextBuilder.Parse(source).ToStringWithRuby();
 
             Assert.AreEqual(body, text.body);
             Assert.AreEqual(ruby, text.joinedRubyText);
@@ -52,20 +52,20 @@ namespace TSKT.Tests
             var fuga = TSKT.RichTextBuilder.Parse("{fuga:ふが}").InsertTag(1, "piyo", 2, "piyo");
             var text = TSKT.RichTextBuilder.Combine(hoge, fuga);
 
-            Assert.AreEqual("ほげふが", text.joinedRubyText);
+            Assert.AreEqual("ほげふが", text.ToStringWithRuby().joinedRubyText);
 
-            Assert.AreEqual(2, text.rubies.Length);
+            Assert.AreEqual(2, text.ToStringWithRuby().rubies.Length);
 
-            Assert.AreEqual(hoge.rubies[0].textPosition, text.rubies[0].textPosition);
-            Assert.AreEqual(hoge.rubies[0].textLength, text.rubies[0].textLength);
+            Assert.AreEqual(hoge.ToStringWithRuby().rubies[0].textPosition, text.ToStringWithRuby().rubies[0].textPosition);
+            Assert.AreEqual(hoge.ToStringWithRuby().rubies[0].textLength, text.ToStringWithRuby().rubies[0].textLength);
 
-            Assert.AreEqual(fuga.rubies[0].textPosition + 2, text.rubies[1].textPosition);
-            Assert.AreEqual(fuga.rubies[0].textLength, text.rubies[1].textLength);
-            Assert.AreEqual(4, text.rubies[1].bodyStringRange.start);
-            Assert.AreEqual(4, text.rubies[1].bodyStringRange.length);
+            Assert.AreEqual(fuga.ToStringWithRuby().rubies[0].textPosition + 2, text.ToStringWithRuby().rubies[1].textPosition);
+            Assert.AreEqual(fuga.ToStringWithRuby().rubies[0].textLength, text.ToStringWithRuby().rubies[1].textLength);
+            Assert.AreEqual(4, text.ToStringWithRuby().rubies[1].bodyStringRange.start);
+            Assert.AreEqual(4, text.ClearTags().ToStringWithRuby().rubies[1].bodyStringRange.length);
 
             Assert.AreEqual(1, text.tags.Length);
-            Assert.AreEqual(5, text.tags[0].leftIndex);
+            Assert.AreEqual(5, text.tags.Span[0].leftIndex);
         }
         [Test]
         public void Substring()
@@ -79,19 +79,19 @@ namespace TSKT.Tests
             var sub = text.Substring(2, 10);
 
             Assert.AreEqual("だ！！\n邪神広告機構", sub.body);
-            Assert.AreEqual("じゃろォ～～～", sub.joinedRubyText);
+            Assert.AreEqual("じゃろォ～～～", sub.ToStringWithRuby().joinedRubyText);
 
-            Assert.AreEqual(1, sub.rubies.Length);
+            Assert.AreEqual(1, sub.ToStringWithRuby().rubies.Length);
 
-            Assert.AreEqual(0, sub.rubies[0].textPosition);
-            Assert.AreEqual(7, sub.rubies[0].textLength);
+            Assert.AreEqual(0, sub.ToStringWithRuby().rubies[0].textPosition);
+            Assert.AreEqual(7, sub.ToStringWithRuby().rubies[0].textLength);
 
-            Assert.AreEqual(4, sub.rubies[0].bodyStringRange.start);
-            Assert.AreEqual(6, sub.rubies[0].bodyStringRange.length);
+            Assert.AreEqual(4, sub.ClearTags().ToStringWithRuby().rubies[0].bodyStringRange.start);
+            Assert.AreEqual(6, sub.ClearTags().ToStringWithRuby().rubies[0].bodyStringRange.length);
 
             Assert.AreEqual(2, sub.tags.Length);
-            Assert.AreEqual(0, sub.tags[0].leftIndex);
-            Assert.AreEqual(4, sub.tags[1].leftIndex);
+            Assert.AreEqual(0, sub.tags.Span[0].leftIndex);
+            Assert.AreEqual(4, sub.tags.Span[1].leftIndex);
         }
         [Test]
         public void RemoveRubyAt()
@@ -102,30 +102,30 @@ namespace TSKT.Tests
             {
                 var removed = text.RemoveRubyAt(0);
 
-                Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！", removed.body);
-                Assert.AreEqual("じゃろォ～～～", removed.joinedRubyText);
+                Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！", removed.ToStringWithRuby().body);
+                Assert.AreEqual("じゃろォ～～～", removed.ToStringWithRuby().joinedRubyText);
 
-                Assert.AreEqual(1, removed.rubies.Length);
+                Assert.AreEqual(1, removed.ToStringWithRuby().rubies.Length);
 
-                Assert.AreEqual(0, removed.rubies[0].textPosition);
-                Assert.AreEqual(7, removed.rubies[0].textLength);
+                Assert.AreEqual(0, removed.ToStringWithRuby().rubies[0].textPosition);
+                Assert.AreEqual(7, removed.ToStringWithRuby().rubies[0].textLength);
 
-                Assert.AreEqual(6, removed.rubies[0].bodyStringRange.start);
-                Assert.AreEqual(6, removed.rubies[0].bodyStringRange.length);
+                Assert.AreEqual(6, removed.ToStringWithRuby().rubies[0].bodyStringRange.start);
+                Assert.AreEqual(6, removed.ToStringWithRuby().rubies[0].bodyStringRange.length);
             }
             {
                 var removed = text.RemoveRubyAt(1);
 
-                Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！", removed.body);
-                Assert.AreEqual("ハイ・クラス", removed.joinedRubyText);
+                Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！", removed.ToStringWithRuby().body);
+                Assert.AreEqual("ハイ・クラス", removed.ToStringWithRuby().joinedRubyText);
 
-                Assert.AreEqual(1, removed.rubies.Length);
+                Assert.AreEqual(1, removed.ToStringWithRuby().rubies.Length);
 
-                Assert.AreEqual(0, removed.rubies[0].textPosition);
-                Assert.AreEqual(6, removed.rubies[0].textLength);
+                Assert.AreEqual(0, removed.ToStringWithRuby().rubies[0].textPosition);
+                Assert.AreEqual(6, removed.ToStringWithRuby().rubies[0].textLength);
 
-                Assert.AreEqual(0, removed.rubies[0].bodyStringRange.start);
-                Assert.AreEqual(3, removed.rubies[0].bodyStringRange.length);
+                Assert.AreEqual(0, removed.ToStringWithRuby().rubies[0].bodyStringRange.start);
+                Assert.AreEqual(3, removed.ToStringWithRuby().rubies[0].bodyStringRange.length);
             }
         }
         [Test]
@@ -138,43 +138,43 @@ namespace TSKT.Tests
             {
                 var inserted = text.Insert(0, text);
                 Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！上等だ！！\n邪神広告機構～～～ッ！！", inserted.body);
-                Assert.AreEqual("ハイ・クラスじゃろォ～～～ハイ・クラスじゃろォ～～～", inserted.joinedRubyText);
+                Assert.AreEqual("ハイ・クラスじゃろォ～～～ハイ・クラスじゃろォ～～～", inserted.ToStringWithRuby().joinedRubyText);
             }
             {
                 var inserted = text.Insert(3, text);
                 Assert.AreEqual("上等だ上等だ！！\n邪神広告機構～～～ッ！！！！\n邪神広告機構～～～ッ！！", inserted.body);
-                Assert.AreEqual("ハイ・クラスハイ・クラスじゃろォ～～～じゃろォ～～～", inserted.joinedRubyText);
+                Assert.AreEqual("ハイ・クラスハイ・クラスじゃろォ～～～じゃろォ～～～", inserted.ToStringWithRuby().joinedRubyText);
             }
             {
                 var inserted = text.Insert(2, text);
                 Assert.AreEqual("上等上等だ！！\n邪神広告機構～～～ッ！！だ！！\n邪神広告機構～～～ッ！！", inserted.body);
-                Assert.AreEqual("ハイ・クラスハイ・クラスじゃろォ～～～じゃろォ～～～", inserted.joinedRubyText);
+                Assert.AreEqual("ハイ・クラスハイ・クラスじゃろォ～～～じゃろォ～～～", inserted.ToStringWithRuby().joinedRubyText);
 
-                Assert.AreEqual(4, inserted.rubies.Length);
+                Assert.AreEqual(4, inserted.ToStringWithRuby().rubies.Length);
 
-                Assert.AreEqual(0, inserted.rubies[0].textPosition);
-                Assert.AreEqual(6, inserted.rubies[0].textLength);
-                Assert.AreEqual(0, inserted.rubies[0].bodyStringRange.start);
-                Assert.AreEqual(21, inserted.rubies[0].bodyStringRange.length);
+                Assert.AreEqual(0, inserted.ToStringWithRuby().rubies[0].textPosition);
+                Assert.AreEqual(6, inserted.ToStringWithRuby().rubies[0].textLength);
+                Assert.AreEqual(0, inserted.ToStringWithRuby().rubies[0].bodyStringRange.start);
+                Assert.AreEqual(21, inserted.ClearTags().ToStringWithRuby().rubies[0].bodyStringRange.length);
 
-                Assert.AreEqual(6, inserted.rubies[1].textPosition);
-                Assert.AreEqual(6, inserted.rubies[1].textLength);
-                Assert.AreEqual(2, inserted.rubies[1].bodyStringRange.start);
-                Assert.AreEqual(3, inserted.rubies[1].bodyStringRange.length);
+                Assert.AreEqual(6, inserted.ToStringWithRuby().rubies[1].textPosition);
+                Assert.AreEqual(6, inserted.ToStringWithRuby().rubies[1].textLength);
+                Assert.AreEqual(2, inserted.ToStringWithRuby().rubies[1].bodyStringRange.start);
+                Assert.AreEqual(3, inserted.ToStringWithRuby().rubies[1].bodyStringRange.length);
 
-                Assert.AreEqual(12, inserted.rubies[2].textPosition);
-                Assert.AreEqual(7, inserted.rubies[2].textLength);
-                Assert.AreEqual(8, inserted.rubies[2].bodyStringRange.start);
-                Assert.AreEqual(6, inserted.rubies[2].bodyStringRange.length);
+                Assert.AreEqual(12, inserted.ToStringWithRuby().rubies[2].textPosition);
+                Assert.AreEqual(7, inserted.ToStringWithRuby().rubies[2].textLength);
+                Assert.AreEqual(8, inserted.ClearTags().ToStringWithRuby().rubies[2].bodyStringRange.start);
+                Assert.AreEqual(6, inserted.ToStringWithRuby().rubies[2].bodyStringRange.length);
 
-                Assert.AreEqual(19, inserted.rubies[3].textPosition);
-                Assert.AreEqual(7, inserted.rubies[3].textLength);
-                Assert.AreEqual(24, inserted.rubies[3].bodyStringRange.start);
-                Assert.AreEqual(6, inserted.rubies[3].bodyStringRange.length);
+                Assert.AreEqual(19, inserted.ToStringWithRuby().rubies[3].textPosition);
+                Assert.AreEqual(7, inserted.ToStringWithRuby().rubies[3].textLength);
+                Assert.AreEqual(24, inserted.ClearTags().ToStringWithRuby().rubies[3].bodyStringRange.start);;
+                Assert.AreEqual(6, inserted.ToStringWithRuby().rubies[3].bodyStringRange.length);
 
                 Assert.AreEqual(2, inserted.tags.Length);
-                Assert.AreEqual(21, inserted.tags[0].leftIndex);
-                Assert.AreEqual(5, inserted.tags[1].leftIndex);
+                Assert.AreEqual(21, inserted.tags.Span[0].leftIndex);
+                Assert.AreEqual(5, inserted.tags.Span[1].leftIndex);
             }
         }
         [Test]
@@ -183,12 +183,12 @@ namespace TSKT.Tests
             var message = "{上等だ:ハイ・クラス}！！\n{邪神広告機構:じゃろォ～～～}～～～ッ！！";
             var text = TSKT.RichTextBuilder.Parse(message)
                 .Remove(0, 3);
-            Assert.AreEqual("！！\n邪神広告機構～～～ッ！！", text.body);
-            Assert.AreEqual(1, text.rubies.Length);
-            Assert.AreEqual(0, text.rubies[0].textPosition);
-            Assert.AreEqual(7, text.rubies[0].textLength);
-            Assert.AreEqual(3, text.rubies[0].bodyStringRange.start);
-            Assert.AreEqual(6, text.rubies[0].bodyStringRange.length);
+            Assert.AreEqual("！！\n邪神広告機構～～～ッ！！", text.ToStringWithRuby().body);
+            Assert.AreEqual(1, text.ToStringWithRuby().rubies.Length);
+            Assert.AreEqual(0, text.ToStringWithRuby().rubies[0].textPosition);
+            Assert.AreEqual(7, text.ToStringWithRuby().rubies[0].textLength);
+            Assert.AreEqual(3, text.ToStringWithRuby().rubies[0].bodyStringRange.start);
+            Assert.AreEqual(6, text.ToStringWithRuby().rubies[0].bodyStringRange.length);
         }
 
         [Test]

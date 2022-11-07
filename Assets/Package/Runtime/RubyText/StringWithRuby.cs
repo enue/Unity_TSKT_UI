@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿#nullable enable
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-#nullable enable
+using System;
+using System.Buffers;
 
 namespace TSKT
 {
@@ -35,7 +37,7 @@ namespace TSKT
 
         public static StringWithRuby Parse(string originalText)
         {
-            var rubies = new List<Ruby>();
+            var rubies = new ArrayBuilder<Ruby>(0);
             var bodyText = new System.Text.StringBuilder();
             var rubyText = new System.Text.StringBuilder();
 
@@ -79,13 +81,13 @@ namespace TSKT
                 bodyText.Append(body);
                 rubyText.Append(ruby);
             }
-            if (rubies.Count == 0)
+            if (rubies.writer.WrittenCount == 0)
             {
                 return new StringWithRuby(originalText, System.Array.Empty<Ruby>(), string.Empty);
             }
             bodyText.Append(originalText, currentIndex, originalText.Length - currentIndex);
 
-            return new StringWithRuby(bodyText.ToString(), rubies.ToArray(), rubyText.ToString());
+            return new StringWithRuby(bodyText.ToString(), rubies.writer.WrittenSpan.ToArray(), rubyText.ToString());
         }
 
         readonly public int[] GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList)
@@ -119,7 +121,7 @@ namespace TSKT
                 result.Add(rubyLength);
             }
 
-            return result.Array;
+            return result.writer.WrittenSpan.ToArray();
         }
     }
 
@@ -141,23 +143,54 @@ namespace TSKT
                 this.right = right;
             }
         }
+        readonly struct Ruby
+        {
+            public readonly ReadOnlyMemory<char> text;
+            public readonly RangeInt bodyStringRange;
 
-        readonly public Ruby[] rubies;
-        readonly public string joinedRubyText;
-        readonly public string body;
-        readonly public Tag[] tags;
+            public Ruby(ReadOnlyMemory<char> text, RangeInt bodyStringRange)
+            {
+                this.text = text;
+                this.bodyStringRange = bodyStringRange;
+            }
+        }
 
-        public RichTextBuilder(string? body, Ruby[]? rubies, string? joinedRubyText, Tag[]? tags)
+        readonly ReadOnlyMemory<Ruby> rubies;
+        public readonly string body;
+        public readonly ReadOnlyMemory<Tag> tags;
+
+        RichTextBuilder(string? body)
         {
             this.body = body ?? string.Empty;
-            this.rubies = rubies ?? System.Array.Empty<Ruby>();
-            this.joinedRubyText = joinedRubyText ?? string.Empty;
-            this.tags = tags ?? System.Array.Empty<Tag>();
+            rubies = default;
+            tags = default;
+        }
+
+        RichTextBuilder(string? body, ReadOnlyMemory<TSKT.Ruby> rubies, string joinedRubies)
+        {
+            this.body = body ?? string.Empty;
+            var rubyBuilder = new ArrayBuilder<Ruby>(rubies.Length);
+            foreach (var it in rubies.Span)
+            {
+                var ruby = new Ruby(
+                    joinedRubies.AsMemory(it.textPosition, it.textLength),
+                    it.bodyStringRange);
+                rubyBuilder.Add(ruby);
+            }
+            this.rubies = rubyBuilder.writer.WrittenMemory;
+            tags = default;
+        }
+
+        RichTextBuilder(string? body, ReadOnlyMemory<Ruby> rubies, ReadOnlyMemory<Tag> tags)
+        {
+            this.body = body ?? string.Empty;
+            this.rubies = rubies;
+            this.tags = tags;
         }
 
         public static RichTextBuilder Combine(in RichTextBuilder left, in RichTextBuilder right)
         {
-            Ruby[] newRubies;
+            ReadOnlyMemory<Ruby> newRubies;
 
             if (right.rubies.Length == 0)
             {
@@ -167,25 +200,21 @@ namespace TSKT
             {
                 var rubyBuilder = new ArrayBuilder<Ruby>(left.rubies.Length + right.rubies.Length);
 
-                foreach (var it in left.rubies)
-                {
-                    rubyBuilder.Add(it);
-                }
+                rubyBuilder.writer.Write(left.rubies.Span);
 
-                foreach (var it in right.rubies)
+                foreach (var it in right.rubies.Span)
                 {
                     var ruby = new Ruby(
-                        textPosition: it.textPosition + left.joinedRubyText.Length,
-                        textLength: it.textLength,
+                        text: it.text,
                         bodyStringRange: new RangeInt(it.bodyStringRange.start + left.body.Length, it.bodyStringRange.length));
 
                     rubyBuilder.Add(ruby);
                 }
 
-                newRubies = rubyBuilder.Array;
+                newRubies = rubyBuilder.writer.WrittenMemory;
             }
 
-            Tag[] newTags;
+            ReadOnlyMemory<Tag> newTags;
             if (right.tags.Length == 0)
             {
                 newTags = left.tags;
@@ -193,11 +222,8 @@ namespace TSKT
             else
             {
                 var tagBuilder = new ArrayBuilder<Tag>(left.tags.Length + right.tags.Length);
-                foreach (var it in left.tags)
-                {
-                    tagBuilder.Add(it);
-                }
-                foreach (var it in right.tags)
+                tagBuilder.writer.Write(left.tags.Span);
+                foreach (var it in right.tags.Span)
                 {
                     var t = new Tag(
                         leftIndex: it.leftIndex + left.body.Length,
@@ -206,10 +232,10 @@ namespace TSKT
                         right: it.right);
                     tagBuilder.Add(t);
                 }
-                newTags = tagBuilder.Array;
+                newTags = tagBuilder.writer.WrittenMemory;
             }
 
-            return new RichTextBuilder(left.body + right.body, newRubies, left.joinedRubyText + right.joinedRubyText, newTags);
+            return new RichTextBuilder(left.body + right.body, newRubies, newTags);
         }
 
         readonly public RichTextBuilder Remove(int startIndex, int count)
@@ -218,25 +244,22 @@ namespace TSKT
             var removeRange = new RangeInt(startIndex, count);
 
             // ルビの移動
-            var newJoinedRubyText = new System.Text.StringBuilder();
-            var newRubies = new List<Ruby>();
-            foreach (var it in rubies)
+            var newRubies = new ArrayBuilder<Ruby>(rubies.Length);
+            foreach (var it in rubies.Span)
             {
                 var newBodyRange = TrimRange(it.bodyStringRange, removeRange);
                 if (newBodyRange.length > 0)
                 {
                     var ruby = new Ruby(
-                        textPosition: newJoinedRubyText.Length,
-                        textLength: it.textLength,
+                        text: it.text,
                         bodyStringRange: newBodyRange);
                     newRubies.Add(ruby);
-                    newJoinedRubyText.Append(joinedRubyText, it.textPosition, it.textLength);
                 }
             }
 
             // タグの移動
-            var newTags = new List<Tag>(tags.Length);
-            foreach (var it in tags)
+            var newTags = new ArrayBuilder<Tag>(tags.Length);
+            foreach (var it in tags.Span)
             {
                 var range = TrimRange(
                     new RangeInt(it.leftIndex, it.rightIndex - it.leftIndex),
@@ -252,9 +275,8 @@ namespace TSKT
             }
 
             return new RichTextBuilder(newBody,
-                newRubies.ToArray(),
-                newJoinedRubyText.ToString(),
-                newTags.ToArray());
+                newRubies.writer.WrittenMemory,
+                newTags.writer.WrittenMemory);
         }
 
         readonly public RichTextBuilder Substring(int startIndex, int length)
@@ -268,11 +290,13 @@ namespace TSKT
 
             // 削除部分に重なっているルビを削除
             var newRubies = rubies
+                .ToArray()
                 .Where(_ => _.bodyStringRange.start >= startIndex)
                 .Where(_ => _.bodyStringRange.end <= startIndex + length);
 
             // 完全に範囲外になるタグを削除
             var newTags = tags
+                .ToArray()
                 .Where(_ => _.rightIndex > startIndex)
                 .Where(_ => _.leftIndex < startIndex + length)
                 .Select(_ => new Tag(
@@ -282,17 +306,13 @@ namespace TSKT
                     right: _.right));
 
             // joinedRubyTextの切り出し
-            var rubyTextPosition = newRubies.FirstOrDefault().textPosition;
-            var rubyTextLength = newRubies.Sum(_ => _.textLength);
-            var newJoinedRubyText = joinedRubyText.Substring(rubyTextPosition, rubyTextLength);
 
             // 頭を削除するとインデックスがずれる
             if (startIndex > 0)
             {
                 newRubies = newRubies
                     .Select(_ => new Ruby(
-                        _.textPosition - rubyTextPosition,
-                        _.textLength,
+                        _.text,
                         new RangeInt(_.bodyStringRange.start - startIndex, _.bodyStringRange.length)));
 
                 newTags = newTags
@@ -305,7 +325,7 @@ namespace TSKT
 
             var newBody = body.Substring(startIndex, length);
 
-            return new RichTextBuilder(newBody, newRubies.ToArray(), newJoinedRubyText, newTags.ToArray());
+            return new RichTextBuilder(newBody, newRubies.ToArray(), newTags.ToArray());
         }
 
         readonly public RichTextBuilder RemoveRubyAt(int index)
@@ -315,20 +335,17 @@ namespace TSKT
             {
                 if (i < index)
                 {
-                    newRubies[i] = rubies[i];
+                    newRubies[i] = rubies.Span[i];
                 }
                 else if (i > index)
                 {
                     newRubies[i - 1] = new Ruby(
-                        textPosition: rubies[i].textPosition - rubies[index].textLength,
-                        textLength: rubies[i].textLength,
-                        bodyStringRange: rubies[i].bodyStringRange);
+                        text: rubies.Span[i].text,
+                        bodyStringRange: rubies.Span[i].bodyStringRange);
                 }
             }
 
-            var newRubyText = joinedRubyText.Remove(rubies[index].textPosition, rubies[index].textLength);
-
-            return new RichTextBuilder(body, newRubies, newRubyText, tags);
+            return new RichTextBuilder(body, newRubies, tags);
         }
 
         readonly public RichTextBuilder Insert(int startIndex, in RichTextBuilder value)
@@ -336,56 +353,44 @@ namespace TSKT
             var newBody = body.Insert(startIndex, value.body);
 
             // ルビ
-            var rubyBuilder = new ArrayBuilder<(RangeInt range, RangeInt joinedTextRange, string joinedText)>(rubies.Length + value.rubies.Length);
-            foreach (var it in rubies)
+            var newRubies = new ArrayBuilder<Ruby>(rubies.Length + value.rubies.Length);
+            foreach (var it in rubies.Span)
             {
                 if (it.bodyStringRange.end <= startIndex)
                 {
                     // 挿入部分より前
-                    rubyBuilder.Add((it.bodyStringRange, new RangeInt(it.textPosition, it.textLength), joinedRubyText));
+                    newRubies.Add(it);
                 }
                 else if (it.bodyStringRange.start < startIndex
                     && it.bodyStringRange.end >= startIndex)
                 {
                     // 挿入部分をまたぐ
-                    rubyBuilder.Add((
-                        new RangeInt(it.bodyStringRange.start, it.bodyStringRange.length + value.body.Length),
-                        new RangeInt(it.textPosition, it.textLength),
-                        joinedRubyText));
-                }
-                else
-                {
-                    // 挿入部分より後
-                    rubyBuilder.Add((
-                        new RangeInt(it.bodyStringRange.start + value.body.Length, it.bodyStringRange.length),
-                        new RangeInt(it.textPosition, it.textLength),
-                        joinedRubyText));
+                    newRubies.Add(new Ruby(it.text,
+                        new RangeInt(it.bodyStringRange.start, it.bodyStringRange.length + value.body.Length)));
                 }
             }
 
             // 挿入部分
-            foreach (var it in value.rubies)
-            {
-                rubyBuilder.Add((
-                    new RangeInt(it.bodyStringRange.start + startIndex, it.bodyStringRange.length),
-                    new RangeInt(it.textPosition, it.textLength),
-                    value.joinedRubyText));
-            }
-
-            var newRubies = new ArrayBuilder<Ruby>(rubyBuilder.Array.Length);
-            var newRubyText = new System.Text.StringBuilder();
-            foreach (var builder in rubyBuilder.Array.OrderBy(_ => _.range.start))
+            foreach (var it in value.rubies.Span)
             {
                 newRubies.Add(new Ruby(
-                    textPosition: newRubyText.Length,
-                    textLength: builder.joinedTextRange.length,
-                    bodyStringRange: builder.range));
-                newRubyText.Append(builder.joinedText, builder.joinedTextRange.start, builder.joinedTextRange.length);
+                    it.text,
+                    new RangeInt(it.bodyStringRange.start + startIndex, it.bodyStringRange.length)));
+            }
+
+            foreach (var it in rubies.Span)
+            {
+                if (it.bodyStringRange.start >= startIndex)
+                {
+                    // 挿入部分より後
+                    newRubies.Add(new Ruby(it.text,
+                        new RangeInt(it.bodyStringRange.start + value.body.Length, it.bodyStringRange.length)));
+                }
             }
 
             // tag
             var newTags = new ArrayBuilder<Tag>(tags.Length + value.tags.Length);
-            foreach (var it in tags)
+            foreach (var it in tags.Span)
             {
                 if (it.rightIndex <= startIndex)
                 {
@@ -409,7 +414,7 @@ namespace TSKT
                         it.right));
                 }
             }
-            foreach (var it in value.tags)
+            foreach (var it in value.tags.Span)
             {
                 newTags.Add(new Tag(
                     it.leftIndex + startIndex,
@@ -418,80 +423,88 @@ namespace TSKT
                     it.right));
             }
 
-            return new RichTextBuilder(newBody, newRubies.Array, newRubyText.ToString(), newTags.Array);
+            return new RichTextBuilder(newBody, newRubies.writer.WrittenMemory, newTags.writer.WrittenMemory);
         }
 
         readonly public RichTextBuilder InsertTag(int leftIndex, string left, int rightIndex, string? right)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + 1);
 
-            foreach (var it in tags)
-            {
-                tagBuilder.Add(it);
-            }
+            tagBuilder.writer.Write(tags.Span);
             tagBuilder.Add(new Tag(leftIndex, left, rightIndex, right));
 
-            return new RichTextBuilder(body, rubies, joinedRubyText, tagBuilder.Array);
+            return new RichTextBuilder(body, rubies, tagBuilder.writer.WrittenMemory);
         }
 
-        readonly public RichTextBuilder InsertTags(params Tag[] array)
+        public readonly RichTextBuilder InsertTags(params Tag[] array)
+        {
+            return InsertTags(new ReadOnlyMemory<Tag>(array));
+        }
+
+        public readonly RichTextBuilder InsertTags(ReadOnlyMemory<Tag> array)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + array.Length);
+            tagBuilder.writer.Write(tags.Span);
+            tagBuilder.writer.Write(array.Span);
 
-            foreach (var it in tags)
-            {
-                tagBuilder.Add(it);
-            }
-            foreach (var it in array)
-            {
-                tagBuilder.Add(it);
-            }
+            return new RichTextBuilder(body, rubies, tagBuilder.writer.WrittenMemory);
+        }
 
-            return new RichTextBuilder(body, rubies, joinedRubyText, tagBuilder.Array);
+        public readonly RichTextBuilder ClearTags()
+        {
+            return new RichTextBuilder(body, rubies, null);
         }
 
         readonly public StringWithRuby ToStringWithRuby()
         {
-            if (tags.Length == 0)
-            {
-                return new StringWithRuby(body, rubies, joinedRubyText);
-            }
+            var result = this;
 
-            var tagCount = 0;
-            foreach(var it in tags)
+            if (tags.Length > 0)
             {
-                ++tagCount;
-                if (it.right != null)
+                var tagCount = 0;
+                foreach (var it in tags.Span)
                 {
                     ++tagCount;
+                    if (it.right != null)
+                    {
+                        ++tagCount;
+                    }
                 }
-            }
 
-            var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tagCount);
-            for (int i = 0; i < tags.Length; ++i)
-            {
-                var tag = tags[i];
-                tagElements.Add((tag.leftIndex, tag.left, subSort: -i));
-                if (tag.right != null)
+                var tagElements = new ArrayBuilder<(int index, string value, int subSort)>(tagCount);
+                for (int i = 0; i < tags.Length; ++i)
                 {
-                    tagElements.Add((tag.rightIndex, tag.right, subSort: i));
+                    var tag = tags.Span[i];
+                    tagElements.Add((tag.leftIndex, tag.left, subSort: -i));
+                    if (tag.right != null)
+                    {
+                        tagElements.Add((tag.rightIndex, tag.right, subSort: i));
+                    }
+                }
+
+                var sortedTags = tagElements.writer.WrittenSpan
+                    .ToArray()
+                    .OrderByDescending(_ => _.index)
+                    .ThenByDescending(_ => _.subSort);
+
+                foreach (var (index, value, _) in sortedTags)
+                {
+                    var tag = new RichTextBuilder(value);
+                    result = result.Insert(index, tag);
                 }
             }
 
-            var sortedTags = tagElements.Array
-                .OrderByDescending(_ => _.index)
-                .ThenByDescending(_ => _.subSort);
-
-            var result = this;
-            foreach (var (index, value, _) in sortedTags)
+            var rubyBuilder = new ArrayBuilder<TSKT.Ruby>(result.rubies.Length);
+            var writer = new ArrayBufferWriter<char>();
+            foreach (var it in result.rubies.Span)
             {
-                var tag = new RichTextBuilder(value, null, null, null);
-                result = result.Insert(index, tag);
+                rubyBuilder.Add(new TSKT.Ruby(writer.WrittenCount, it.text.Length, it.bodyStringRange));
+                writer.Write(it.text.Span);
             }
 
             return new StringWithRuby(result.body,
-                result.rubies,
-                result.joinedRubyText);
+                rubyBuilder.writer.WrittenMemory.ToArray(),
+                new string(writer.WrittenSpan));
         }
 
         public static RichTextBuilder Parse(string originalText)
@@ -517,11 +530,11 @@ namespace TSKT
             }
             else
             {
-                return new RichTextBuilder(stringWithRuby.body, stringWithRuby.rubies, stringWithRuby.joinedRubyText, null);
+                return new RichTextBuilder(stringWithRuby.body, stringWithRuby.rubies, stringWithRuby.joinedRubyText);
             }
         }
 
-        public static RichTextBuilder Parse(string body, Ruby[]? rubies, string? joinedRubyText)
+        public static RichTextBuilder Parse(string body, TSKT.Ruby[]? rubies, string? joinedRubyText)
         {
             var tagRanges = new List<RangeInt>();
             var tagElements = new List<(string name, string value, bool closing)>();
@@ -571,7 +584,7 @@ namespace TSKT
 
             if (tagElements.Count == 0)
             {
-                return new RichTextBuilder(body, rubies, joinedRubyText, null);
+                return new RichTextBuilder(body, rubies, joinedRubyText);
             }
 
             var pairTags = new ArrayBuilder<Tag>(tagPairCount);
@@ -618,7 +631,7 @@ namespace TSKT
             }
 
             // bodyからtag文字列を削除
-            var result = new RichTextBuilder(body, rubies, joinedRubyText, null);
+            var result = new RichTextBuilder(body, rubies, joinedRubyText);
             {
                 var removedRange = 0;
                 foreach (var range in tagRanges)
@@ -628,7 +641,7 @@ namespace TSKT
                 }
             }
 
-            result = result.InsertTags(pairTags.Array);
+            result = result.InsertTags(pairTags.writer.WrittenSpan.ToArray());
 
             return result;
         }
@@ -641,12 +654,12 @@ namespace TSKT
                 text.fontStyle,
                 body,
                 false,
-                allowSplitRuby ? null : rubies.Select(_ => _.bodyStringRange).ToArray());
+                allowSplitRuby ? null : rubies.ToArray().Select(_ => _.bodyStringRange).ToArray());
 
             var result = this;
             if (newLinePositions.Count > 0)
             {
-                var newLine = new RichTextBuilder("\n", null, null, null);
+                var newLine = new RichTextBuilder("\n");
                 for (int i = 0; i < newLinePositions.Count; ++i)
                 {
                     result = result.Insert(newLinePositions[i] + (i * newLine.body.Length), newLine);
