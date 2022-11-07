@@ -709,5 +709,24 @@ namespace TSKT
                 return new RangeInt(original.start - removeRange.length, original.length);
             }
         }
+
+        public TypingText[] GetTypingSequence()
+        {
+            var result = new List<TypingText>();
+            for (int i = 0; i < body.Length; ++i)
+            {
+                if (body[i] == '\n')
+                {
+                    // 改行はカウントしない
+                }
+                else
+                {
+                    result.Add(new TypingText(
+                        i + 1,
+                        Substring(0, i + 1).ToStringWithRuby()));
+                }
+            }
+            return result.ToArray();
+        }
     }
 }

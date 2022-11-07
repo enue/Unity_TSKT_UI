@@ -44,7 +44,7 @@ namespace TSKT
         TMP_RubyText? textMeshProRubyForTypingMessage = default;
 
         [SerializeField]
-        TMP_TypingEffect? textMeshProBodyForTypingMessage = default;
+        TMPro.TMP_Text? textMeshProBodyForTypingMessage = default;
 
 
         [SerializeField]
@@ -88,20 +88,16 @@ namespace TSKT
 
         IEnumerator UpdateTypingMessage(string text)
         {
-            var richText = RichTextBuilder.Parse(text)
-                .WrapWithHyphenation(body!, new HyphenationJpns.Ruler());
+            var richTexts = RichTextBuilder.Parse(text)
+                .WrapWithHyphenation(body!, new HyphenationJpns.Ruler())
+                .GetTypingSequence();
 
             while (true)
             {
-                for (int i = 0; i < richText.body.Length; ++i)
+                foreach (var it in richTexts)
                 {
-                    if (richText.body[i] == '\n')
-                    {
-                        continue;
-                    }
-                    var sub = richText.Substring(0, i + 1).ToStringWithRuby();
-                    rubyForTypingMessage!.Set(sub);
-                    bodyForTypingMessage!.text = sub.body;
+                    rubyForTypingMessage!.Set(it.Text);
+                    bodyForTypingMessage!.text = it.Text.body;
 
                     yield return new WaitForSeconds(0.05f);
                 }
@@ -150,21 +146,15 @@ namespace TSKT
         // これはTMP_RubyText内で呼んでいるTMP_Text.GetTextInfoの副作用による。
         IEnumerator UpdateTypingMessageTMP(string message)
         {
-            var richText = RichTextBuilder.Parse(message);
-            var stringWithRuby = richText.ToStringWithRuby();
-            textMeshProBodyForTypingMessage!.Modifier.Text.text = stringWithRuby.body;
+            var richTexts = RichTextBuilder.Parse(message).GetTypingSequence();
+            textMeshProBodyForTypingMessage!.text = richTexts[^1].Text.body;
 
             while (true)
             {
-                for (int i = 0; i < richText.body.Length; ++i)
+                foreach (var it in richTexts)
                 {
-                    if (richText.body[i] == '\n')
-                    {
-                        continue;
-                    }
-                    textMeshProBodyForTypingMessage.visibleQuadCount = i + 1;
-                    // var sub = richText.Substring(0, i + 1).ToStringWithRuby();
-                    // textMeshProRubyForTypingMessage.Set(sub);
+                    textMeshProBodyForTypingMessage.maxVisibleCharacters = it.VisibleBodyLength;
+                    textMeshProRubyForTypingMessage.Set(it.Text);
                     yield return new WaitForSeconds(0.05f);
                 }
                 yield return new WaitForSeconds(1f);

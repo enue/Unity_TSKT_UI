@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 namespace TSKT
 {
+    [System.Obsolete("use TMP_Text.maxVisibleCharacters")]
     public class TMP_TypingEffect : TMP_BaseMeshEffect
     {
         const int VertexCountPerQuad = 4;
