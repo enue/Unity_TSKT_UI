@@ -166,11 +166,11 @@ namespace TSKT
             tags = default;
         }
 
-        RichTextBuilder(string? body, ReadOnlyMemory<TSKT.Ruby> rubies, string joinedRubies)
+        RichTextBuilder(string? body, ReadOnlySpan<TSKT.Ruby> rubies, string joinedRubies)
         {
             this.body = body ?? string.Empty;
             var rubyBuilder = new ArrayBuilder<Ruby>(rubies.Length);
-            foreach (var it in rubies.Span)
+            foreach (var it in rubies)
             {
                 var ruby = new Ruby(
                     joinedRubies.AsMemory(it.textPosition, it.textLength),
@@ -438,14 +438,14 @@ namespace TSKT
 
         public readonly RichTextBuilder InsertTags(params Tag[] array)
         {
-            return InsertTags(new ReadOnlyMemory<Tag>(array));
+            return InsertTags(new ReadOnlySpan<Tag>(array));
         }
 
-        public readonly RichTextBuilder InsertTags(ReadOnlyMemory<Tag> array)
+        public readonly RichTextBuilder InsertTags(ReadOnlySpan<Tag> array)
         {
             var tagBuilder = new ArrayBuilder<Tag>(tags.Length + array.Length);
             tagBuilder.writer.Write(tags.Span);
-            tagBuilder.writer.Write(array.Span);
+            tagBuilder.writer.Write(array);
 
             return new RichTextBuilder(body, rubies, tagBuilder.writer.WrittenMemory);
         }
