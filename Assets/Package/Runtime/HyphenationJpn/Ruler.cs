@@ -309,7 +309,7 @@ namespace TSKT.HyphenationJpns
                 else
                 {
                     // unsplittableRanges指定がある場合はまとめて処理する
-                    word.Append(tmpText, firstIndex, lastIndex - firstIndex + 1);
+                    word.Append(tmpText[firstIndex..(lastIndex + 1)]);
                 }
 
                 // 自分の後ろで改行していいかどうかの判定

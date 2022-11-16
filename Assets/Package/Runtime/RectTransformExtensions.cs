@@ -1,4 +1,6 @@
 #nullable enable
+using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,8 +9,6 @@ namespace TSKT
 {
     public static class RectTransformExtensions
     {
-        static readonly Vector3[] corners = new Vector3[4];
-
         static public Rect GetLocalRect(this RectTransform rect, RectTransform? parent = null)
         {
             var xMin = float.PositiveInfinity;
@@ -18,25 +18,41 @@ namespace TSKT
 
             if (!parent || rect == parent)
             {
-                rect.GetLocalCorners(corners);
-                foreach (var it in corners)
+                var corners = ArrayPool<Vector3>.Shared.Rent(4);
+                try
                 {
-                    xMin = Mathf.Min(xMin, it.x);
-                    xMax = Mathf.Max(xMax, it.x);
-                    yMin = Mathf.Min(yMin, it.y);
-                    yMax = Mathf.Max(yMax, it.y);
+                    rect.GetLocalCorners(corners);
+                    foreach (var it in corners.AsSpan(0, 4))
+                    {
+                        xMin = Mathf.Min(xMin, it.x);
+                        xMax = Mathf.Max(xMax, it.x);
+                        yMin = Mathf.Min(yMin, it.y);
+                        yMax = Mathf.Max(yMax, it.y);
+                    }
+                }
+                finally
+                {
+                    ArrayPool<Vector3>.Shared.Return(corners);
                 }
             }
             else
             {
-                rect.GetWorldCorners(corners);
-                foreach (var it in corners)
+                var corners = ArrayPool<Vector3>.Shared.Rent(4);
+                try
                 {
-                    var pos = parent!.worldToLocalMatrix.MultiplyPoint(it);
-                    xMin = Mathf.Min(xMin, pos.x);
-                    xMax = Mathf.Max(xMax, pos.x);
-                    yMin = Mathf.Min(yMin, pos.y);
-                    yMax = Mathf.Max(yMax, pos.y);
+                    rect.GetWorldCorners(corners);
+                    foreach (var it in corners.AsSpan(0, 4))
+                    {
+                        var pos = parent!.worldToLocalMatrix.MultiplyPoint(it);
+                        xMin = Mathf.Min(xMin, pos.x);
+                        xMax = Mathf.Max(xMax, pos.x);
+                        yMin = Mathf.Min(yMin, pos.y);
+                        yMax = Mathf.Max(yMax, pos.y);
+                    }
+                }
+                finally
+                {
+                    ArrayPool<Vector3>.Shared.Return(corners);
                 }
             }
             return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
@@ -49,13 +65,21 @@ namespace TSKT
             var yMin = float.PositiveInfinity;
             var yMax = float.NegativeInfinity;
 
-            rect.GetWorldCorners(corners);
-            foreach (var it in corners)
+            var corners = ArrayPool<Vector3>.Shared.Rent(4);
+            try
             {
-                xMin = Mathf.Min(xMin, it.x);
-                xMax = Mathf.Max(xMax, it.x);
-                yMin = Mathf.Min(yMin, it.y);
-                yMax = Mathf.Max(yMax, it.y);
+                rect.GetWorldCorners(corners);
+                foreach (var it in corners.AsSpan(0, 4))
+                {
+                    xMin = Mathf.Min(xMin, it.x);
+                    xMax = Mathf.Max(xMax, it.x);
+                    yMin = Mathf.Min(yMin, it.y);
+                    yMax = Mathf.Max(yMax, it.y);
+                }
+            }
+            finally
+            {
+                ArrayPool<Vector3>.Shared.Return(corners);
             }
             return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
         }

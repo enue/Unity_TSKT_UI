@@ -78,7 +78,7 @@ namespace TSKT.Tests
                     new TSKT.RichTextBuilder.Tag(12, "tag3", 13, "tag3"));
             var sub = text.Substring(2, 10);
 
-            Assert.AreEqual("だ！！\n邪神広告機構", sub.body);
+            Assert.AreEqual("だ！！\n邪神広告機構", sub.body.ToString());
             Assert.AreEqual("じゃろォ～～～", sub.ToStringWithRuby().joinedRubyText);
 
             Assert.AreEqual(1, sub.ToStringWithRuby().rubies.Length);
@@ -137,17 +137,17 @@ namespace TSKT.Tests
 
             {
                 var inserted = text.Insert(0, text);
-                Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！上等だ！！\n邪神広告機構～～～ッ！！", inserted.body);
+                Assert.AreEqual("上等だ！！\n邪神広告機構～～～ッ！！上等だ！！\n邪神広告機構～～～ッ！！", inserted.body.ToString());
                 Assert.AreEqual("ハイ・クラスじゃろォ～～～ハイ・クラスじゃろォ～～～", inserted.ToStringWithRuby().joinedRubyText);
             }
             {
                 var inserted = text.Insert(3, text);
-                Assert.AreEqual("上等だ上等だ！！\n邪神広告機構～～～ッ！！！！\n邪神広告機構～～～ッ！！", inserted.body);
+                Assert.AreEqual("上等だ上等だ！！\n邪神広告機構～～～ッ！！！！\n邪神広告機構～～～ッ！！", inserted.body.ToString());
                 Assert.AreEqual("ハイ・クラスハイ・クラスじゃろォ～～～じゃろォ～～～", inserted.ToStringWithRuby().joinedRubyText);
             }
             {
                 var inserted = text.Insert(2, text);
-                Assert.AreEqual("上等上等だ！！\n邪神広告機構～～～ッ！！だ！！\n邪神広告機構～～～ッ！！", inserted.body);
+                Assert.AreEqual("上等上等だ！！\n邪神広告機構～～～ッ！！だ！！\n邪神広告機構～～～ッ！！", inserted.body.ToString());
                 Assert.AreEqual("ハイ・クラスハイ・クラスじゃろォ～～～じゃろォ～～～", inserted.ToStringWithRuby().joinedRubyText);
 
                 Assert.AreEqual(4, inserted.ToStringWithRuby().rubies.Length);
@@ -250,7 +250,7 @@ namespace TSKT.Tests
         {
             var text = TSKT.RichTextBuilder.Parse(originalString);
 
-            Assert.AreEqual(body, text.body);
+            Assert.AreEqual(body, text.body.ToString());
             Assert.AreEqual(taggedBody, text.ToStringWithRuby().body);
         }
 
@@ -259,13 +259,13 @@ namespace TSKT.Tests
         {
             var message = "{hoge:fuga}<color=red>piyo</color>";
             var trueTrue = RichTextBuilder.Parse(message, tag: true, ruby: true);
-            Assert.AreEqual("hogepiyo", trueTrue.body);
+            Assert.AreEqual("hogepiyo", trueTrue.body.ToString());
             var falseTrue = RichTextBuilder.Parse(message, tag: false, ruby: true);
-            Assert.AreEqual("hoge<color=red>piyo</color>", falseTrue.body);
+            Assert.AreEqual("hoge<color=red>piyo</color>", falseTrue.body.ToString());
             var trueFalse = RichTextBuilder.Parse(message, tag: true, ruby: false);
-            Assert.AreEqual("{hoge:fuga}piyo", trueFalse.body);
+            Assert.AreEqual("{hoge:fuga}piyo", trueFalse.body.ToString());
             var falseFalse = RichTextBuilder.Parse(message, tag: false, ruby: false);
-            Assert.AreEqual(message, falseFalse.body);
+            Assert.AreEqual(message, falseFalse.body.ToString());
         }
     }
 }

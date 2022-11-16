@@ -109,7 +109,7 @@ namespace TSKT
                         currentRubyLength = splitRubyLength;
                     }
 
-                    var bodyBounds = GetBounds(bodyCharactersForRuby, characterIndex, characterCount);
+                    var bodyBounds = GetBounds(bodyCharactersForRuby.AsSpan(characterIndex, characterCount));
                     bodyBounds.xMin -= boundsWidthDelta;
                     bodyBounds.xMax += boundsWidthDelta;
 
@@ -170,18 +170,16 @@ namespace TSKT
             }
         }
 
-        public static (float xMin, float xMax, float yMax) GetBounds((float left, float right, float y)[] characters,
-            int startIndex, int count)
+        public static (float xMin, float xMax, float yMax) GetBounds(ReadOnlySpan<(float left, float right, float y)> characters)
         {
-            var xMax = characters[startIndex].right;
-            var xMin = characters[startIndex].left;
-            var yMax = characters[startIndex].y;
-            for (int i = 1; i < count; ++i)
+            var xMax = characters[0].right;
+            var xMin = characters[0].left;
+            var yMax = characters[0].y;
+            foreach (var (left, right, y) in characters[1..])
             {
-                var index = startIndex + i;
-                xMax = Mathf.Max(xMax, characters[index].right);
-                xMin = Mathf.Min(xMin, characters[index].left);
-                yMax = Mathf.Max(yMax, characters[index].y);
+                xMax = Mathf.Max(xMax, right);
+                xMin = Mathf.Min(xMin, left);
+                yMax = Mathf.Max(yMax, y);
             }
             return (xMin, xMax, yMax);
         }
