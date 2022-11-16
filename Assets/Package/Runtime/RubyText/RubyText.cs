@@ -63,11 +63,19 @@ namespace TSKT
             foreach (var ruby in stringWithRuby.rubies)
             {
                 // 幅がない文字はおそらく制御文字やタグなので撥ねる
-                var bodyCharactersForRuby = bodyCharacterPositions
-                    .Skip(ruby.bodyStringRange.start)
-                    .Take(ruby.bodyStringRange.length)
-                    .Where(_ => _.left != _.right)
-                    .ToArray();
+                Span<(float left, float right, float y)> bodyCharactersForRuby = stackalloc (float left, float right, float y)[ruby.bodyStringRange.length];
+                {
+                    int index = 0;
+                    foreach (var it in bodyCharacterPositions.AsSpan(ruby.bodyStringRange.start, ruby.bodyStringRange.length))
+                    {
+                        if (it.left != it.right)
+                        {
+                            bodyCharactersForRuby[index] = it;
+                            ++index;
+                        }
+                    }
+                    bodyCharactersForRuby = bodyCharactersForRuby[..index];
+                }
 
                 if (bodyCharactersForRuby.Length == 0)
                 {
@@ -109,7 +117,7 @@ namespace TSKT
                         currentRubyLength = splitRubyLength;
                     }
 
-                    var bodyBounds = GetBounds(bodyCharactersForRuby.AsSpan(characterIndex, characterCount));
+                    var bodyBounds = GetBounds(bodyCharactersForRuby.Slice(characterIndex, characterCount));
                     bodyBounds.xMin -= boundsWidthDelta;
                     bodyBounds.xMax += boundsWidthDelta;
 

@@ -236,12 +236,21 @@ namespace TSKT
                 newTags = tagBuilder.writer.WrittenSpan;
             }
 
-            return new RichTextBuilder(left.body.ToString() + right.body.ToString(), newRubies, newTags);
+            // left.body.ToString() + right.body.ToString();
+            Span<char> combined = new char[left.body.Length + right.body.Length];
+            left.body.CopyTo(combined);
+            right.body.CopyTo(combined[left.body.Length..]);
+
+            return new RichTextBuilder(combined, newRubies, newTags);
         }
 
         readonly public RichTextBuilder Remove(int startIndex, int count)
         {
-            var newBody = body.ToString().Remove(startIndex, count);
+            // var newBody = body.ToString().Remove(startIndex, count);
+            Span<char> newBody = new char[body.Length - count];
+            body[..startIndex].CopyTo(newBody);
+            body[(startIndex + count)..].CopyTo(newBody[startIndex..]);
+
             var removeRange = new RangeInt(startIndex, count);
 
             // ルビの移動
@@ -351,7 +360,11 @@ namespace TSKT
 
         readonly public RichTextBuilder Insert(int startIndex, in RichTextBuilder value)
         {
-            var newBody = body.ToString().Insert(startIndex, value.body.ToString());
+            // var newBody = body.ToString().Insert(startIndex, value.body.ToString());
+            Span<char> newBody = new char[body.Length + value.body.Length];
+            body[..startIndex].CopyTo(newBody);
+            value.body.CopyTo(newBody[startIndex..]);
+            body[startIndex..].CopyTo(newBody[(startIndex + value.body.Length)..]);
 
             // ルビ
             var newRubies = new ArrayBuilder<Ruby>(rubies.Length + value.rubies.Length);
@@ -596,7 +609,7 @@ namespace TSKT
 
             if (tagElements.Count == 0)
             {
-                return new RichTextBuilder(body.ToString(), rubies, joinedRubyText);
+                return new RichTextBuilder(source, rubies, joinedRubyText);
             }
 
             var pairTags = new ArrayBuilder<Tag>(tagPairCount);
@@ -653,7 +666,7 @@ namespace TSKT
                 }
             }
 
-            result = result.InsertTags(pairTags.writer.WrittenSpan.ToArray());
+            result = result.InsertTags(pairTags.writer.WrittenSpan);
 
             return result;
         }
