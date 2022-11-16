@@ -172,3 +172,12 @@ The following packages were updated:
   com.unity.ide.rider from version 3.0.13 to 3.0.15
   com.unity.ide.visualstudio from version 2.0.15 to 2.0.16
   com.unity.test-framework from version 1.1.31 to 1.1.33
+
+=== Wed Nov 16 14:19:29 2022
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ide.rider from version 3.0.15 to 3.0.16
+  com.unity.timeline from version 1.7.1 to 1.7.2
