@@ -12,7 +12,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "f65d52185e4ec609b72e30b9f36e499ace9a6cb4"
+      "hash": "b4fe995600bebc5326d0719e617c52e9b9f35be8"
     },
     "com.github.enue.tskt_math": {
       "version": "https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package",
@@ -22,7 +22,7 @@
         "com.github.enue.tskt_container": "0.5.3",
         "com.unity.mathematics": "1.1.0"
       },
-      "hash": "d1b883d02f9e77ec0e9b5019269e81580b3e8c0c"
+      "hash": "1972f17379af59fe52b26be649eb8bf4f34d3d46"
     },
     "com.github.enue.tskt_tween": {
       "version": "https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package",
@@ -49,7 +49,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.15",
+      "version": "3.0.16",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -101,7 +101,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
-      "version": "1.7.1",
+      "version": "1.7.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
