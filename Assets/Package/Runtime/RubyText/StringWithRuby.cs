@@ -129,7 +129,7 @@ namespace TSKT
         public readonly string ToHtml()
         {
             var result = body;
-            foreach (var it in rubies)
+            foreach (var it in rubies.Reverse())
             {
                 var ruby = joinedRubyText.Substring(it.textPosition, it.textLength);
                 result = result.Insert(it.bodyStringRange.end, $"</rb><rt>{ruby}</rt></ruby>");

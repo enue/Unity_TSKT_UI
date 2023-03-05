@@ -269,11 +269,12 @@ namespace TSKT.Tests
         }
 
         [Test]
-        public void ToHtml()
+        [TestCase("{hoge:fuga}<color=red>piyo</color>", "<ruby><rb>hoge</rb><rt>fuga</rt></ruby><color=red>piyo</color>")]
+        [TestCase("{hoge:fuga}{foo:bar}", "<ruby><rb>hoge</rb><rt>fuga</rt></ruby><ruby><rb>foo</rb><rt>bar</rt></ruby>")]
+        public void ToHtml(string message, string expected)
         {
-            var message = "{hoge:fuga}<color=red>piyo</color>";
             var html = RichTextBuilder.Parse(message).ToStringWithRuby().ToHtml();
-            Assert.AreEqual("<ruby><rb>hoge</rb><rt>fuga</rt></ruby><color=red>piyo</color>", html);
+            Assert.AreEqual(expected, html);
         }
     }
 }
