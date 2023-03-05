@@ -267,5 +267,13 @@ namespace TSKT.Tests
             var falseFalse = RichTextBuilder.Parse(message, tag: false, ruby: false);
             Assert.AreEqual(message, falseFalse.body.ToString());
         }
+
+        [Test]
+        public void ToHtml()
+        {
+            var message = "{hoge:fuga}<color=red>piyo</color>";
+            var html = RichTextBuilder.Parse(message).ToStringWithRuby().ToHtml();
+            Assert.AreEqual("<ruby><rb>hoge</rb><rt>fuga</rt></ruby><color=red>piyo</color>", html);
+        }
     }
 }

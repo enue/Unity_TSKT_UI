@@ -125,6 +125,18 @@ namespace TSKT
 
             return result.Memory.ToArray();
         }
+
+        public readonly string ToHtml()
+        {
+            var result = body;
+            foreach (var it in rubies)
+            {
+                var ruby = joinedRubyText.Substring(it.textPosition, it.textLength);
+                result = result.Insert(it.bodyStringRange.end, $"</rb><rt>{ruby}</rt></ruby>");
+                result = result.Insert(it.bodyStringRange.start, "<ruby><rb>");
+            }
+            return result;
+        }
     }
 
     public readonly ref struct RichTextBuilder
