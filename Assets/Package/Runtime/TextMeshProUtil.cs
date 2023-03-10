@@ -56,7 +56,7 @@ namespace TSKT
 
                 if (clearedGlobalFallback || clearedFonts.Count > 0)
                 {
-                    var targetTexts = Object.FindObjectsOfType<TMPro.TMP_Text>(includeInactive: false);
+                    var targetTexts = Object.FindObjectsByType<TMPro.TMP_Text>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
                     foreach (var it in targetTexts)
                     {
                         if (clearedGlobalFallback)
