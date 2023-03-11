@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 
 #if TSKT_UI_SUPPORT_TEXTMESHPRO
 namespace TSKT
 {
     public class TextMeshProUtil
     {
+        readonly static List<TMPro.TMP_FontAsset> fontsToRefresh = new();
+
         // テクスチャがいっぱいになった時にFontAsset.ClearFontAssetDataを呼ぶ
         public static void SetText(TMPro.TMP_Text target, string value)
         {
@@ -19,38 +22,48 @@ namespace TSKT
             else
             {
                 target.SetText(value);
-                RefreshFontAssetData(target.font);
+                fontsToRefresh.Add(target.font);
+
+                UniTask.Yield().ToUniTask().ContinueWith(() =>
+                {
+                    RefreshFontAssetData(fontsToRefresh.Distinct().ToArray());
+                    fontsToRefresh.Clear();
+                });
             }
         }
-        public static void RefreshFontAssetData(TMPro.TMP_FontAsset font)
+
+        public static void RefreshFontAssetData(params TMPro.TMP_FontAsset[] fonts)
         {
             bool clearedGlobalFallback = false;
 
             using (UnityEngine.Pool.ListPool<TMPro.TMP_FontAsset>.Get(out var clearedFonts))
             {
-                if (font.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
-                    && !font.isMultiAtlasTexturesEnabled)
+                foreach (var font in fonts)
                 {
-                    font.ClearFontAssetData();
-                    clearedFonts.Add(font);
-                }
-                foreach (var it in font.fallbackFontAssetTable)
-                {
-                    if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
+                    if (font.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
                         && !font.isMultiAtlasTexturesEnabled)
                     {
-                        it.ClearFontAssetData();
-                        clearedFonts.Add(it);
+                        font.ClearFontAssetData();
+                        clearedFonts.Add(font);
                     }
-                }
-                foreach (var it in TMPro.TMP_Settings.fallbackFontAssets)
-                {
-                    if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
-                        && !font.isMultiAtlasTexturesEnabled)
+                    foreach (var it in font.fallbackFontAssetTable)
                     {
-                        it.ClearFontAssetData();
-                        clearedFonts.Add(it);
-                        clearedGlobalFallback = true;
+                        if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
+                            && !font.isMultiAtlasTexturesEnabled)
+                        {
+                            it.ClearFontAssetData();
+                            clearedFonts.Add(it);
+                        }
+                    }
+                    foreach (var it in TMPro.TMP_Settings.fallbackFontAssets)
+                    {
+                        if (it.atlasPopulationMode == TMPro.AtlasPopulationMode.Dynamic
+                            && !font.isMultiAtlasTexturesEnabled)
+                        {
+                            it.ClearFontAssetData();
+                            clearedFonts.Add(it);
+                            clearedGlobalFallback = true;
+                        }
                     }
                 }
 
