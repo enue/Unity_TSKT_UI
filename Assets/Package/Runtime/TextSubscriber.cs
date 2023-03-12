@@ -20,7 +20,7 @@ namespace TSKT
             }
             component.subscription?.Dispose();
             component.subscription = source.SubscribeToText(text);
-            component.subscription.AddTo(text.gameObject.GetCancellationTokenOnDestroy());
+            component.subscription.AddTo(text.destroyCancellationToken);
         }
 
 #if TSKT_UI_SUPPORT_TEXTMESHPRO
@@ -32,7 +32,7 @@ namespace TSKT
             }
             component.subscription?.Dispose();
             component.subscription = source.Subscribe(_ => TextMeshProUtil.SetText(text, _));
-            component.subscription.AddTo(text.gameObject.GetCancellationTokenOnDestroy());
+            component.subscription.AddTo(text.destroyCancellationToken);
         }
 #endif
     }
