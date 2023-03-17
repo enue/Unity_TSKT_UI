@@ -8,31 +8,51 @@ using UniRx;
 
 namespace TSKT
 {
-    public class TextSubscriber : MonoBehaviour
+    public static class TextSubscriber
     {
-        System.IDisposable? subscription;
+        static readonly Dictionary<Component, System.IDisposable> subscriptions = new();
 
         public static void Subscribe(Text text, System.IObservable<string> source)
         {
-            if (!text.TryGetComponent<TextSubscriber>(out var component))
+            if (subscriptions.TryGetValue(text, out var oldSubscription))
             {
-                component = text.gameObject.AddComponent<TextSubscriber>();
+                oldSubscription.Dispose();
             }
-            component.subscription?.Dispose();
-            component.subscription = source.SubscribeToText(text);
-            component.subscription.AddTo(text.destroyCancellationToken);
+            else
+            {
+                text.destroyCancellationToken.Register(() =>
+                {
+                    if (subscriptions.TryGetValue(text, out var value))
+                    {
+                        subscriptions.Remove(text);
+                        value.Dispose();
+                    }
+                });
+            }
+
+            subscriptions[text] = source.SubscribeToText(text);
         }
 
 #if TSKT_UI_SUPPORT_TEXTMESHPRO
         public static void Subscribe(TMPro.TMP_Text text, System.IObservable<string> source)
         {
-            if (!text.TryGetComponent<TextSubscriber>(out var component))
+            if (subscriptions.TryGetValue(text, out var oldSubscription))
             {
-                component = text.gameObject.AddComponent<TextSubscriber>();
+                oldSubscription.Dispose();
             }
-            component.subscription?.Dispose();
-            component.subscription = source.Subscribe(_ => TextMeshProUtil.SetText(text, _));
-            component.subscription.AddTo(text.destroyCancellationToken);
+            else
+            {
+                text.destroyCancellationToken.Register(() =>
+                {
+                    if (subscriptions.TryGetValue(text, out var value))
+                    {
+                        subscriptions.Remove(text);
+                        value.Dispose();
+                    }
+                });
+            }
+
+            subscriptions[text] = source.SubscribeWithState(text, (_, _text) => TextMeshProUtil.SetText(_text, _));
         }
 #endif
     }
