@@ -1,7 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-
-#if TSKT_UI_SUPPORT_TEXTMESHPRO
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,4 +33,3 @@ namespace TSKT
         }
     }
 }
-#endif

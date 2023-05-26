@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 namespace TSKT
 {
-#if TSKT_UI_SUPPORT_TEXTMESHPRO
     [DisallowMultipleComponent]
     [RequireComponent(typeof(TMPro.TMP_Text))]
     public class TMP_LayoutMaxSize : MonoBehaviour, ILayoutElement
@@ -76,12 +75,6 @@ namespace TSKT
         }
 #endif
     }
-#else
-    [DisallowMultipleComponent]
-    public class TMP_LayoutMaxSize : MonoBehaviour
-    {
-    }
-#endif
 }
 
 

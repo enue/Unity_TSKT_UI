@@ -5,7 +5,6 @@ using UnityEngine;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 
-#if TSKT_UI_SUPPORT_TEXTMESHPRO
 namespace TSKT
 {
     public class TextMeshProUtil
@@ -89,4 +88,3 @@ namespace TSKT
         }
     }
 }
-#endif

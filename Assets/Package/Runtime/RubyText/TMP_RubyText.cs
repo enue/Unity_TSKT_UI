@@ -6,8 +6,6 @@ using UnityEngine.UI;
 using System.Linq;
 #nullable enable
 
-#if TSKT_UI_SUPPORT_TEXTMESHPRO
-
 namespace TSKT
 {
     [RequireComponent(typeof(TMPro.TMP_Text))]
@@ -286,4 +284,3 @@ namespace TSKT
         }
     }
 }
-#endif

@@ -2,10 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
-#nullable enable
-
-#if TSKT_UI_SUPPORT_TEXTMESHPRO
 using TMPro;
+#nullable enable
 
 namespace TSKT
 {
@@ -72,4 +70,3 @@ namespace TSKT
         protected abstract void ModifyQuad(TMP_VertexHelper vertexHelper, int startIndex, int count, float normalizedTime);
     }
 }
-#endif
