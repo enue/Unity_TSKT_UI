@@ -50,7 +50,7 @@ namespace TSKT
                 });
             }
 
-            subscriptions[text] = source.SubscribeWithState(text, (_, _text) => TextMeshProUtil.SetText(_text, _));
+            subscriptions[text] = source.SubscribeWithState(text, (_, _text) => _text.text = _);
         }
     }
 }
