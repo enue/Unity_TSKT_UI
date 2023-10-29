@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "b992a061fbf68ff1eb475d0837065b0549ed31ba"
+      "hash": "6f5d81854456a351ff99a5d8dca85d49cf6f6a0d"
     },
     "com.github.enue.tskt_container": {
       "version": "https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package",
@@ -31,7 +31,7 @@
         "com.cysharp.unitask": "2.3.3",
         "com.github.enue.tskt_math": "0.21.5"
       },
-      "hash": "fec2b8da6189ff2eb12edee473a3af5825ca3172"
+      "hash": "75bd747d355ca35f66c6c578d6977927899fb627"
     },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
@@ -47,7 +47,7 @@
       "dependencies": {}
     },
     "com.unity.ai.navigation": {
-      "version": "1.1.4",
+      "version": "1.1.5",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -63,7 +63,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "3.0.24",
+      "version": "3.0.26",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -72,7 +72,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.20",
+      "version": "2.0.22",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -88,7 +88,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.3.8",
+      "version": "1.3.9",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -108,7 +108,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
-      "version": "1.8.4",
+      "version": "1.8.6",
       "depth": 0,
       "source": "registry",
       "dependencies": {
