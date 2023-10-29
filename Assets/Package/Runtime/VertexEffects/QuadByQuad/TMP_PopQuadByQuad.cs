@@ -28,7 +28,11 @@ namespace TSKT
             {
                 var index = startIndex + i;
 
-                vertexHelper.Vertices[index] += new Vector3(0f, h, 0f);
+                var vertices = vertexHelper.GetVertex(index);
+                for (int j = 0; j < vertices.Length; ++j)
+                {
+                    vertices[j] += new Vector3(0f, h, 0f);
+                }
             }
         }
     }

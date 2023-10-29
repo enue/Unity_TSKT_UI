@@ -42,11 +42,13 @@ namespace TSKT
             if (stringWithRuby.rubies == null
                 || stringWithRuby.rubies.Length == 0)
             {
+                Text.text = null;
                 return;
             }
 
-            if (!TryGetBodyCharacterPositions(out var bodyCharacterPositions))
+            if (!TryGetBodySourceTextPositions(out var bodySourceTextPositions))
             {
+                Text.text = null;
                 return;
             }
 
@@ -56,7 +58,7 @@ namespace TSKT
                 Span<(float left, float right, float y)> bodyCharactersForRuby = stackalloc (float left, float right, float y)[ruby.bodyStringRange.length];
                 {
                     int index = 0;
-                    foreach (var it in bodyCharacterPositions.AsSpan(ruby.bodyStringRange.start, ruby.bodyStringRange.length))
+                    foreach (var it in bodySourceTextPositions.AsSpan(ruby.bodyStringRange.start, ruby.bodyStringRange.length))
                     {
                         if (it.left != it.right)
                         {
@@ -121,7 +123,7 @@ namespace TSKT
             int rubyIndex, int rubyLength,
             (float xMin, float xMax, float yMax) bodyBounds)
         {
-            var vertexCount = rubyVertices.Vertices.Count;
+            var characterCount = rubyVertices.CharacterCount;
 
             float rubyBoundsLeft;
             float advance;
@@ -132,14 +134,14 @@ namespace TSKT
                 for (int i = 0; i < rubyLength; ++i)
                 {
                     {
-                        var requireCount = (rubyIndex + i + 1) * VertexCountPerQuad;
-                        if (requireCount > vertexCount)
+                        var requireCount = (rubyIndex + i + 1);
+                        if (requireCount > characterCount)
                         {
                             continue;
                         }
                     }
 
-                    var quadWidth = rubyVertices.GetQuadBounds(i + rubyIndex).size.x;
+                    var quadWidth = rubyVertices.GetCharacterBounds(i + rubyIndex).size.x;
                     rubyWidth += quadWidth;
 
                     if (i == rubyLength - 1)
@@ -179,8 +181,8 @@ namespace TSKT
             for (int i = 0; i < rubyLength; ++i)
             {
                 {
-                    var requireCount = (rubyIndex + i + 1) * VertexCountPerQuad;
-                    if (requireCount > vertexCount)
+                    var requireCount = (rubyIndex + i + 1);
+                    if (requireCount > rubyVertices.CharacterCount)
                     {
                         break;
                     }
@@ -188,24 +190,23 @@ namespace TSKT
 
                 var toPosition = new Vector2(position, bodyBounds.yMax + positionY);
 
-                var bounds = rubyVertices.GetQuadBounds(rubyIndex + i);
+                var bounds = rubyVertices.GetCharacterBounds(rubyIndex + i);
                 var fromPosition = new Vector2(bounds.min.x, bounds.center.y);
                 var move = toPosition - fromPosition;
 
-                var vertexRange = rubyVertices.GetVertexRangeOfQuad(rubyIndex + i);
-                for (int index = vertexRange.start; index < vertexRange.end; ++index)
+
+                var vertices = rubyVertices.GetVertex(rubyIndex + i);
+                for (int j = 0; j < vertices.Length; ++j)
                 {
-                    var vertex = rubyVertices.Vertices[index];
-                    vertex.x += move.x;
-                    vertex.y += move.y;
-                    rubyVertices.Vertices[index] = vertex;
+                    vertices[j].x += move.x;
+                    vertices[j].y += move.y;
                 }
 
                 position += bounds.size.x * advance;
             }
         }
 
-        bool TryGetBodyCharacterPositions(out (float left, float right, float y)[]? result)
+        bool TryGetBodySourceTextPositions(out (float left, float right, float y)[]? result)
         {
             // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
             var textInfo = bodyText!.GetTextInfo(stringWithRuby.body);

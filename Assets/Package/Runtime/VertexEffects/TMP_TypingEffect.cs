@@ -16,17 +16,15 @@ namespace TSKT
 
         public override void Modify(TMP_VertexHelper vertexHelper)
         {
-            var quadCount = vertexHelper.Colors.Count / VertexCountPerQuad;
-
-            for (int i = 0; i < quadCount; ++i)
+            for (int i = 0; i < vertexHelper.CharacterCount; ++i)
             {
                 var visible = i < visibleQuadCount;
                 if (!visible)
                 {
-                    for(int j=0; j<VertexCountPerQuad; ++j)
+                    var colors = vertexHelper.GetColor(i);
+                    for (int j = 0; j < colors.Length; ++j)
                     {
-                        var index = i * VertexCountPerQuad + j;
-                        vertexHelper.Colors[index] = Color.clear;
+                        colors[j] = Color.clear;
                     }
                 }
             }

@@ -9,8 +9,6 @@ namespace TSKT
 {
     public abstract class TMP_QuadByQuad : TMP_BaseMeshEffect
     {
-        const int VertexCountPerQuad = 4;
-
         public float delayPerQuad = 0.1f;
         public float durationPerQuad = 0.4f;
         public bool rightToLeft = false;
@@ -45,25 +43,24 @@ namespace TSKT
             {
                 return;
             }
-            var quadCount = vertexHelper.Vertices.Count / VertexCountPerQuad;
 
             var time = elapsedTime;
             if (loop)
             {
-                time %= GetDuration(quadCount);
+                time %= GetDuration(vertexHelper.CharacterCount);
             }
 
-            for (int quadIndex = 0; quadIndex < quadCount; ++quadIndex)
+            for (int i = 0; i < vertexHelper.CharacterCount; ++i)
             {
                 var normalizedTime = QuadByQuad.GetNormalizedTime(
-                    quadIndex: quadIndex,
-                    quadCount: quadCount,
+                    quadIndex: i,
+                    quadCount: vertexHelper.CharacterCount,
                     delayPerQuad: delayPerQuad,
                     elapsedTime: time,
                     durationPerQuad: durationPerQuad,
                     rightToLeft: rightToLeft);
 
-                ModifyQuad(vertexHelper, quadIndex * VertexCountPerQuad, VertexCountPerQuad, normalizedTime);
+                ModifyQuad(vertexHelper, i, 1, normalizedTime);
             }
         }
 

@@ -1,7 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEngine.XR;
 #nullable enable
 
 namespace TSKT
@@ -9,60 +13,28 @@ namespace TSKT
     public class TMP_VertexHelper
     {
         const int VertexCountPerQuad = 4;
-        readonly TMP_Text text;
+        readonly TextMeshProUGUI text;
 
-        Mesh? mesh;
-        Mesh Mesh
+        public Span<Vector3> GetVertex(int characterIndex)
         {
-            get
-            {
-                if (!mesh)
-                {
-                    text.ForceMeshUpdate();
-                    mesh = text.mesh;
-                }
-                return mesh!;
-            }
+            var mat = text.textInfo.characterInfo[characterIndex].materialReferenceIndex;
+            var vertexIndex = text.textInfo.characterInfo[characterIndex].vertexIndex;
+            return text.textInfo.meshInfo[mat].vertices.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
         }
 
-        readonly List<Color> colors = new List<Color>();
-        public List<Color> Colors
+        public Span<Color32> GetColor(int characterIndex)
         {
-            get
-            {
-                if (!colorsModified)
-                {
-                    Mesh.GetColors(colors);
-                    colorsModified = true;
-                }
-                return colors;
-            }
+            var mat = text.textInfo.characterInfo[characterIndex].materialReferenceIndex;
+            var vertexIndex = text.textInfo.characterInfo[characterIndex].vertexIndex;
+            return text.textInfo.meshInfo[mat].colors32.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
         }
+        public int CharacterCount => text.textInfo.characterCount;
 
-        readonly List<Vector3> vertices = new();
-        public List<Vector3> Vertices
-        {
-            get
-            {
-                if (vertices.Count == 0)
-                {
-                    Mesh.GetVertices(vertices);
-                }
-                return vertices;
-            }
-        }
-        bool colorsModified = false;
-
-        public TMP_VertexHelper(TMP_Text text)
+        public TMP_VertexHelper(TextMeshProUGUI text)
         {
             this.text = text;
         }
-
-        public RangeInt GetVertexRangeOfQuad(int index)
-        {
-            return new RangeInt(index * VertexCountPerQuad, VertexCountPerQuad);
-        }
-        public Bounds GetQuadBounds(int index)
+        public Bounds GetCharacterBounds(int index)
         {
             var minX = float.MaxValue;
             var maxX = float.MinValue;
@@ -70,15 +42,15 @@ namespace TSKT
             var maxY = float.MinValue;
             var minZ = float.MaxValue;
             var maxZ = float.MinValue;
-            for (int i = 0; i < VertexCountPerQuad; ++i)
+
+            foreach(var it in GetVertex(index))
             {
-                var v = Vertices[index * VertexCountPerQuad + i];
-                minX = Mathf.Min(minX, v.x);
-                maxX = Mathf.Max(maxX, v.x);
-                minY = Mathf.Min(minY, v.y);
-                maxY = Mathf.Max(maxY, v.y);
-                minZ = Mathf.Min(minZ, v.z);
-                maxZ = Mathf.Max(maxZ, v.z);
+                minX = Mathf.Min(minX, it.x);
+                maxX = Mathf.Max(maxX, it.x);
+                minY = Mathf.Min(minY, it.y);
+                maxY = Mathf.Max(maxY, it.y);
+                minZ = Mathf.Min(minZ, it.z);
+                maxZ = Mathf.Max(maxZ, it.z);
             }
 
             return new Bounds(
@@ -94,22 +66,14 @@ namespace TSKT
 
         public void Consume()
         {
-            if (vertices.Count > 0)
+            int index = 0;
+            foreach (var it in text.textInfo.meshInfo)
             {
-                Mesh.SetVertices(vertices);
+                it.mesh.SetVertices(it.vertices);
+                it.mesh.SetColors(it.colors32);
+                text.UpdateGeometry(it.mesh, index);
+                ++index;
             }
-            if (colorsModified)
-            {
-                Mesh.SetColors(colors);
-            }
-            if (vertices.Count > 0 || colorsModified)
-            {
-                text.UpdateGeometry(Mesh, 0);
-            }
-
-            vertices.Clear();
-            colorsModified = false;
-            mesh = null;
         }
     }
 }

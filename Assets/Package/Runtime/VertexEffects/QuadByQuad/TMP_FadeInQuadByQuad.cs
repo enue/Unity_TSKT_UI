@@ -14,19 +14,24 @@ namespace TSKT
             {
                 return;
             }
-
             for (int i = 0; i < count; ++i)
             {
                 var index = i + startIndex;
                 if (normalizedTime <= 0f)
                 {
-                    vertexHelper.Colors[index] = Color.clear;
+                    var colors = vertexHelper.GetColor(index);
+                    for(int j =0; j< colors.Length; ++j)
+                    {
+                        colors[j] =  Color.clear;
+                    }
                 }
                 else
                 {
-                    var color = vertexHelper.Colors[index];
-                    color.a *= normalizedTime;
-                    vertexHelper.Colors[index] = color;
+                    var colors = vertexHelper.GetColor(index);
+                    for(int j =0; j< colors.Length; ++j)
+                    {
+                        colors[j].a = (byte)(colors[j].a * normalizedTime);
+                    }
                 }
             }
         }

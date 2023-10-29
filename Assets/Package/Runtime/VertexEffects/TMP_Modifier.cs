@@ -12,14 +12,14 @@ namespace TSKT
         [SerializeField]
         bool forceRefresh = false;
 
-        TMP_Text? text;
-        public TMP_Text Text => text ? text! : (text = GetComponent<TMP_Text>());
+        TextMeshProUGUI? text;
+        public TextMeshProUGUI Text => text ? text! : (text = GetComponent<TextMeshProUGUI>());
 
         TMP_BaseMeshEffect[]? effects = null;
-        TMP_BaseMeshEffect[] Effects => effects ?? (effects = GetComponents<TMP_BaseMeshEffect>());
+        TMP_BaseMeshEffect[] Effects => effects ??= GetComponents<TMP_BaseMeshEffect>();
 
         TMP_VertexHelper? vertexHelper;
-        TMP_VertexHelper VertexHelper => vertexHelper ?? (vertexHelper = new TMP_VertexHelper(Text));
+        TMP_VertexHelper VertexHelper => vertexHelper ??= new(Text);
 
         void LateUpdate()
         {
