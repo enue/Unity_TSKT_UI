@@ -10,8 +10,6 @@ namespace TSKT
     [System.Obsolete("use TMP_Text.maxVisibleCharacters")]
     public class TMP_TypingEffect : TMP_BaseMeshEffect
     {
-        const int VertexCountPerQuad = 4;
-
         public int visibleQuadCount = 0;
 
         public override void Modify(TMP_VertexHelper vertexHelper)

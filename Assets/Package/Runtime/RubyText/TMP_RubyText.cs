@@ -230,58 +230,5 @@ namespace TSKT
             }
             return true;
         }
-
-        bool TryGetBodyCharacterHasQuadList(out bool[]? result)
-        {
-            // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
-            var textInfo = bodyText!.GetTextInfo(stringWithRuby.body);
-            if (textInfo.characterCount == 0)
-            {
-                result = null;
-                return false;
-            }
-
-            result = new bool[stringWithRuby.body.Length];
-            for (int i = 0; i < textInfo.characterCount; ++i)
-            {
-                var it = textInfo.characterInfo[i];
-                result[it.index] = it.isVisible;
-            }
-            return true;
-        }
-
-        public bool TryGetBodyQuadCountRubyQuadCountMap(out int[]? result)
-        {
-            if (!TryGetBodyCharacterHasQuadList(out var list))
-            {
-                result = null;
-                return false;
-            }
-            result = stringWithRuby.GetBodyQuadCountRubyQuadCountMap(list!);
-            return true;
-        }
-
-        public bool TryGetBodyCharacterCountBodyQuadCountMap(out int[]? result)
-        {
-            if (!TryGetBodyCharacterHasQuadList(out var list))
-            {
-                result = null;
-                return false;
-            }
-
-            result = new int[list!.Length + 1];
-            var quadCount = 0;
-            for (int i = 0; i < list.Length; ++i)
-            {
-                if (list[i])
-                {
-                    ++quadCount;
-                }
-
-                result[i + 1] = quadCount;
-            }
-
-            return true;
-        }
     }
 }

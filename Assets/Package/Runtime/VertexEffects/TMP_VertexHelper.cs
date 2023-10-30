@@ -10,29 +10,31 @@ using UnityEngine.XR;
 
 namespace TSKT
 {
-    public class TMP_VertexHelper
+    public readonly struct TMP_VertexHelper
     {
         const int VertexCountPerQuad = 4;
         readonly TextMeshProUGUI text;
+        readonly TMP_MeshInfo[] meshInfo;
 
         public Span<Vector3> GetVertex(int characterIndex)
         {
             var mat = text.textInfo.characterInfo[characterIndex].materialReferenceIndex;
             var vertexIndex = text.textInfo.characterInfo[characterIndex].vertexIndex;
-            return text.textInfo.meshInfo[mat].vertices.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
+            return meshInfo[mat].vertices.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
         }
 
         public Span<Color32> GetColor(int characterIndex)
         {
             var mat = text.textInfo.characterInfo[characterIndex].materialReferenceIndex;
             var vertexIndex = text.textInfo.characterInfo[characterIndex].vertexIndex;
-            return text.textInfo.meshInfo[mat].colors32.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
+            return meshInfo[mat].colors32.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
         }
         public int CharacterCount => text.textInfo.characterCount;
 
         public TMP_VertexHelper(TextMeshProUGUI text)
         {
             this.text = text;
+            meshInfo = text.textInfo.meshInfo;
         }
         public Bounds GetCharacterBounds(int index)
         {
@@ -67,11 +69,26 @@ namespace TSKT
         public void Consume()
         {
             int index = 0;
-            foreach (var it in text.textInfo.meshInfo)
+
+            foreach (var it in meshInfo)
             {
-                it.mesh.SetVertices(it.vertices);
-                it.mesh.SetColors(it.colors32);
-                text.UpdateGeometry(it.mesh, index);
+                var modified = false;
+                if (it.vertices != null)
+                {
+                    modified = true;
+                    it.ClearUnusedVertices();
+                    it.mesh.vertices = it.vertices;
+                }
+                if (it.colors32 != null)
+                {
+                    modified = true;
+                    it.ClearUnusedVertices();
+                    it.mesh.colors32 = it.colors32;
+                }
+                if (modified)
+                {
+                    text.UpdateGeometry(it.mesh, index);
+                }
                 ++index;
             }
         }

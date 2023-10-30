@@ -18,8 +18,6 @@ namespace TSKT
         TMP_BaseMeshEffect[]? effects = null;
         TMP_BaseMeshEffect[] Effects => effects ??= GetComponents<TMP_BaseMeshEffect>();
 
-        TMP_VertexHelper? vertexHelper;
-        TMP_VertexHelper VertexHelper => vertexHelper ??= new(Text);
 
         void LateUpdate()
         {
@@ -36,12 +34,12 @@ namespace TSKT
                 return;
             }
 
+            var helper = new TMP_VertexHelper(Text);
             foreach (var it in Effects)
             {
-                it.Modify(VertexHelper);
+                it.Modify(helper);
             }
-
-            VertexHelper.Consume();
+            helper.Consume();
         }
     }
 }
