@@ -1,16 +1,16 @@
 {
     "name": "com.github.enue.tskt_ui",
     "displayName": "TSKT UI",
-    "version": "0.23.0",
+    "version": "0.24.0",
     "unity": "2023.1",
     "description": "",
     "keywords": [],
     "category": "",
     "dependencies": {
-        "com.cysharp.unitask": "2.0.13",
+        "com.cysharp.unitask": "2.4.1",
         "com.neuecc.unirx": "7.1.0",
-        "com.github.enue.tskt_container": "0.5.2",
-        "com.github.enue.tskt_math": "0.8.3",
-        "com.github.enue.tskt_tween": "0.5.0"
+        "com.github.enue.tskt_container": "0.9.4",
+        "com.github.enue.tskt_math": "0.21.5",
+        "com.github.enue.tskt_tween": "0.6.5"
     }
 }
