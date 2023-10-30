@@ -27,10 +27,16 @@ namespace TSKT
 
         StringWithRuby stringWithRuby;
 
-        public void Set(in StringWithRuby stringWithRuby)
+        public void Set(in StringWithRuby stringWithRuby, bool updateMesh = false)
         {
             Text.text = stringWithRuby.joinedRubyText;
             this.stringWithRuby = stringWithRuby;
+
+            if (updateMesh)
+            {
+                Text.ForceMeshUpdate();
+                Modifier.Refresh();
+            }
         }
 
         public override void Modify(TMP_VertexHelper vertexHelper)

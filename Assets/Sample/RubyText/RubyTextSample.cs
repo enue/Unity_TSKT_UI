@@ -47,15 +47,6 @@ namespace TSKT
         TMPro.TMP_Text? textMeshProBodyForTypingMessage = default;
 
 
-        [SerializeField]
-        TMP_RubyText? textMeshProRubyForTypingMessageWithFade = default;
-
-        [SerializeField]
-        TMP_TypingEffect? textMeshProRubyTypingEffect = default;
-
-        [SerializeField]
-        TMP_QuadByQuad?[] textMeshProBodyTypingEffects = default!;
-
 
         void Start()
         {
@@ -74,7 +65,6 @@ namespace TSKT
             StartCoroutine(UpdateTypingMessage(message));
             StartCoroutine(UpdateTypingMessageWithFade(message));
             StartCoroutine(UpdateTypingMessageTMP(message));
-            StartCoroutine(UpdateTypingMessageWithFadeTMP(message));
         }
 
         void ShowStringWithRuby(string text)
@@ -136,7 +126,7 @@ namespace TSKT
         {
             var richText = RichTextBuilder.Parse(message).ToStringWithRuby();
             textMeshProBody!.text = richText.body;
-            textMeshProRuby!.Set(richText);
+            textMeshProRuby!.Set(richText, updateMesh: true);
         }
 
         // ルビを表示すると改行禁則処理でおかしくなるのでいったんルビ表示は諦める。
@@ -154,36 +144,9 @@ namespace TSKT
                 foreach (var it in richTexts)
                 {
                     textMeshProBodyForTypingMessage.maxVisibleCharacters = it.VisibleBodyLength;
-                    textMeshProRubyForTypingMessage.Set(it.Text);
+                    textMeshProRubyForTypingMessage.Set(it.Text, updateMesh: true);
                     yield return new WaitForSeconds(0.05f);
                 }
-                yield return new WaitForSeconds(1f);
-            }
-        }
-
-        IEnumerator UpdateTypingMessageWithFadeTMP(string message)
-        {
-            var textMeshProTypingEffect = new TMP_RubyTextTypingEffect(
-                RichTextBuilder.Parse(message).ToStringWithRuby(),
-                textMeshProRubyForTypingMessageWithFade!,
-                textMeshProRubyTypingEffect!,
-                textMeshProBodyTypingEffects!);
-
-            while (true)
-            {
-                var startedTime = Time.time;
-                while (true)
-                {
-                    var elapsedTime = Time.time - startedTime;
-                    textMeshProTypingEffect.Update(elapsedTime);
-
-                    if (elapsedTime > textMeshProTypingEffect.duration)
-                    {
-                        break;
-                    }
-                    yield return null;
-                }
-
                 yield return new WaitForSeconds(1f);
             }
         }

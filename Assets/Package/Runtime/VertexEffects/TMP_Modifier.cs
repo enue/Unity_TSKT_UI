@@ -12,8 +12,8 @@ namespace TSKT
         [SerializeField]
         bool forceRefresh = false;
 
-        TextMeshProUGUI? text;
-        public TextMeshProUGUI Text => text ? text! : (text = GetComponent<TextMeshProUGUI>());
+        TMP_Text? text;
+        public TMP_Text Text => text ? text! : (text = GetComponent<TMP_Text>());
 
         TMP_BaseMeshEffect[]? effects = null;
         TMP_BaseMeshEffect[] Effects => effects ??= GetComponents<TMP_BaseMeshEffect>();

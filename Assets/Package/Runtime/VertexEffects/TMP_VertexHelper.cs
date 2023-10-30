@@ -13,28 +13,27 @@ namespace TSKT
     public readonly struct TMP_VertexHelper
     {
         const int VertexCountPerQuad = 4;
-        readonly TextMeshProUGUI text;
-        readonly TMP_MeshInfo[] meshInfo;
+        readonly TMP_Text text;
+        TMP_MeshInfo[] MeshInfo => text.textInfo.meshInfo;
 
         public Span<Vector3> GetVertex(int characterIndex)
         {
             var mat = text.textInfo.characterInfo[characterIndex].materialReferenceIndex;
             var vertexIndex = text.textInfo.characterInfo[characterIndex].vertexIndex;
-            return meshInfo[mat].vertices.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
+            return MeshInfo[mat].vertices.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
         }
 
         public Span<Color32> GetColor(int characterIndex)
         {
             var mat = text.textInfo.characterInfo[characterIndex].materialReferenceIndex;
             var vertexIndex = text.textInfo.characterInfo[characterIndex].vertexIndex;
-            return meshInfo[mat].colors32.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
+            return MeshInfo[mat].colors32.AsSpan().Slice(vertexIndex, VertexCountPerQuad);
         }
         public int CharacterCount => text.textInfo.characterCount;
 
-        public TMP_VertexHelper(TextMeshProUGUI text)
+        public TMP_VertexHelper(TMP_Text text)
         {
             this.text = text;
-            meshInfo = text.textInfo.meshInfo;
         }
         public Bounds GetCharacterBounds(int index)
         {
@@ -70,7 +69,7 @@ namespace TSKT
         {
             int index = 0;
 
-            foreach (var it in meshInfo)
+            foreach (var it in MeshInfo)
             {
                 var modified = false;
                 if (it.vertices != null)
