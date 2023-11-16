@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "6f5d81854456a351ff99a5d8dca85d49cf6f6a0d"
+      "hash": "5cc97c7f0085624b6ef57853d70b404440060cef"
     },
     "com.github.enue.tskt_container": {
       "version": "https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package",
