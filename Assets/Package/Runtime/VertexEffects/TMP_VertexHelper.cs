@@ -68,27 +68,27 @@ namespace TSKT
         public void Consume()
         {
             int index = 0;
+            TMP_VertexDataUpdateFlags modifiedFlags = 0;
 
             foreach (var it in MeshInfo)
             {
-                var modified = false;
                 if (it.vertices != null)
                 {
-                    modified = true;
                     it.ClearUnusedVertices();
                     it.mesh.vertices = it.vertices;
+                    modifiedFlags |= TMP_VertexDataUpdateFlags.Vertices;
                 }
                 if (it.colors32 != null)
                 {
-                    modified = true;
                     it.ClearUnusedVertices();
                     it.mesh.colors32 = it.colors32;
-                }
-                if (modified)
-                {
-                    text.UpdateGeometry(it.mesh, index);
+                    modifiedFlags |= TMP_VertexDataUpdateFlags.Colors32;
                 }
                 ++index;
+            }
+            if (modifiedFlags != 0)
+            {
+                text.UpdateVertexData(modifiedFlags);
             }
         }
     }
