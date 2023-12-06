@@ -9,19 +9,9 @@ namespace TSKT
     [System.Serializable]
     public struct DicingSprite
     {
-        public Vector2 size;
-        public Sprite[] sprites;
-        public Rect[]? spriteRects;
-
-        public DicingSprite(params Sprite[] sprites)
-        {
-            this.sprites = sprites;
-            size = default;
-            spriteRects = default;
-        }
-        readonly public bool Empty => sprites == null || sprites.Length == 0;
-
-        readonly public Vector2 Size
+        [SerializeField]
+        Vector2 size;
+        public readonly Vector2 Size
         {
             get
             {
@@ -45,7 +35,11 @@ namespace TSKT
             }
         }
 
-        readonly public Rect[] SpriteRects
+        public Sprite[] sprites;
+
+        [SerializeField]
+        Rect[]? spriteRects;
+        public readonly Rect[] SpriteRects
         {
             get
             {
@@ -62,6 +56,16 @@ namespace TSKT
                 return sprites.Select(_ => _.rect).ToArray();
             }
         }
+
+        public DicingSprite(params Sprite[] sprites)
+        {
+            this.sprites = sprites;
+            size = default;
+            spriteRects = default;
+        }
+        public readonly bool Empty => sprites == null || sprites.Length == 0;
+
+
 #if UNITY_EDITOR
         public void AutoCorrect()
         {
