@@ -261,3 +261,11 @@ The following packages were updated:
   com.unity.ugui from version 1.0.0 to 2.0.0
 The following packages were removed:
   com.unity.textmeshpro@3.2.0-pre.6
+
+=== Thu Jan 11 17:36:25 2024
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ide.rider from version 3.0.26 to 3.0.27
