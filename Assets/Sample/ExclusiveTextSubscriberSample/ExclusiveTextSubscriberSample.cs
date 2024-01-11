@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using TSKT;
-using UniRx;
+using R3;
 using UnityEngine;
 
 public class ExclusiveTextSubscriberSample : MonoBehaviour
@@ -22,7 +22,7 @@ public class ExclusiveTextSubscriberSample : MonoBehaviour
 
         var subject2  = new ReactiveProperty<string>("1");
         var subject3 = subject2.ToReadOnlyReactiveProperty();
-        subject2.Dispose();
+        subject2.OnCompleted();
 
         TextSubscriber.Subscribe(text, subject3);
         Destroy(text.gameObject);

@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+    "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.github.enue.tskt_container": "https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package",
     "com.github.enue.tskt_math": "https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package",
     "com.github.enue.tskt_tween": "https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package",
