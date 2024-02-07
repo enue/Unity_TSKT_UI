@@ -13,6 +13,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.github.enue.tskt_tween",
+            "expression": "",
+            "define": "TSKT_TWEEN_SUPPORT"
+        }
+    ],
     "noEngineReferences": false
 }

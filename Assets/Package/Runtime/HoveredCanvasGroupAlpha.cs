@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿#nullable enable
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-#nullable enable
+
+#if TSKT_TWEEN_SUPPORT
 
 namespace TSKT
 {
@@ -60,3 +62,5 @@ namespace TSKT
         }
     }
 }
+
+#endif

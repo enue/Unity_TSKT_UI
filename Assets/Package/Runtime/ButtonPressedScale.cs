@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿#nullable enable
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-#nullable enable
 
+#if TSKT_TWEEN_SUPPORT
 namespace TSKT
 {
     [DisallowMultipleComponent]
@@ -112,3 +113,4 @@ namespace TSKT
         }
     }
 }
+#endif
