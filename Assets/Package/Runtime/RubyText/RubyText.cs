@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System.Buffers;
 #nullable enable
 
 namespace TSKT
@@ -141,16 +142,23 @@ namespace TSKT
                     characters.Clear();
                     generator.GetCharacters(characters);
 
-                    var builder = new ArrayBuilder<(float left, float right, float y)>(characters.Count);
-                    var scale = 1f / bodyText.pixelsPerUnit;
-                    foreach (var character in characters)
+                    if (characters.Count > 0)
                     {
-                        var left = character.cursorPos.x * scale;
-                        var right = (character.cursorPos.x + character.charWidth) * scale;
-                        var y = character.cursorPos.y * scale;
-                        builder.Add((left, right, y));
+                        var builder = new ArrayBufferWriter<(float left, float right, float y)>(characters.Count);
+                        var scale = 1f / bodyText.pixelsPerUnit;
+                        foreach (var character in characters)
+                        {
+                            var left = character.cursorPos.x * scale;
+                            var right = (character.cursorPos.x + character.charWidth) * scale;
+                            var y = character.cursorPos.y * scale;
+                            builder.Add((left, right, y));
+                        }
+                        return builder.WrittenSpan.ToArray();
                     }
-                    return builder.writer.WrittenSpan.ToArray();
+                    else
+                    {
+                        return System.Array.Empty<(float left, float right, float y)>();
+                    }
                 }
             }
         }
@@ -168,12 +176,16 @@ namespace TSKT
                     characters.Clear();
                     generator.GetCharacters(characters);
 
-                    var builder = new ArrayBuilder<bool>(characters.Count);
-                    foreach (var character in characters)
+                    if (characters.Count > 0)
                     {
-                        builder.Add(character.charWidth != 0f);
+                        var builder = new ArrayBufferWriter<bool>(characters.Count);
+                        foreach (var character in characters)
+                        {
+                            builder.Add(character.charWidth != 0f);
+                        }
+                        return builder.WrittenSpan.ToArray();
                     }
-                    return builder.writer.WrittenSpan.ToArray();
+                    return System.Array.Empty<bool>();
                 }
             }
         }
