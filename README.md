@@ -1,17 +1,15 @@
 # TSKT_UI
 
-+ Unity Version : 2019.1.10
++ Unity Version : 2023.2
 
 # install
 
-Unity Package Manager
+R3
+https://github.com/Cysharp/R3
 
+Unity Package Manager
 add package from git url
 
-+ `https://github.com/Cysharp/UniTask.git?path=Assets/UniRx.Async`
-+ `https://github.com/enue/Unity_TSKT_Container.git?path=Assets/Package`
-+ `https://github.com/enue/Unity_TSKT_Math.git?path=Assets/Package`
-+ `https://github.com/enue/Unity_TSKT_Tween.git?path=Assets/Package`
 + `https://github.com/enue/Unity_TSKT_UI.git?path=Assets/Package`
 
 # 機能

@@ -1,12 +1,12 @@
 {
     "name": "com.github.enue.tskt_ui",
     "displayName": "TSKT UI",
-    "version": "0.24.4",
+    "version": "0.25.0",
     "unity": "2023.2",
     "description": "",
     "keywords": [],
     "category": "",
     "dependencies": {
-        "com.cysharp.r3": "0.1.2"
+        "com.cysharp.r3": "1.0.1"
     }
 }
