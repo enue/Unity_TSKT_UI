@@ -4,15 +4,17 @@
       "version": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity",
       "depth": 0,
       "source": "git",
-      "dependencies": {},
-      "hash": "ef1c553b2883ac844f9eeab79449882a4ad67286"
+      "dependencies": {
+        "com.unity.modules.imgui": "1.0.0"
+      },
+      "hash": "fb04d0a50adc1a4f3e88dd46bd0e9199c58a392f"
     },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "5cc97c7f0085624b6ef57853d70b404440060cef"
+      "hash": "809d23edae0df58fd0f61b4b6f67855c59d1b2fb"
     },
     "com.github-glitchenzo.nugetforunity": {
       "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
@@ -38,7 +40,7 @@
         "com.cysharp.unitask": "2.3.3",
         "com.github.enue.tskt_math": "0.21.5"
       },
-      "hash": "75bd747d355ca35f66c6c578d6977927899fb627"
+      "hash": "fdf0d74abdc8b086af02658c671fd3ec382c43b0"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",

@@ -49,7 +49,7 @@ namespace TSKT
                 });
             }
 
-            subscriptions[text] = source.Subscribe(text, (_, _text) => _text.text = _);
+            subscriptions[text] = source.Subscribe(text, static (_, _text) => _text.text = _);
         }
     }
 }
