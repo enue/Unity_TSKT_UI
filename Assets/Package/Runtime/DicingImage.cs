@@ -1,9 +1,9 @@
-﻿using System.Collections;
+﻿#nullable enable
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-#nullable enable
 
 namespace TSKT
 {
@@ -50,6 +50,23 @@ namespace TSKT
                     if (it)
                     {
                         it!.color = color;
+                    }
+                }
+            }
+        }
+
+        Material? material;
+        public Material? Material
+        {
+            get => material;
+            set
+            {
+                material = value;
+                foreach (var it in items)
+                {
+                    if (it)
+                    {
+                        it!.material = value;
                     }
                 }
             }
@@ -138,6 +155,7 @@ namespace TSKT
                             item = gameObject.AddComponent<Image>();
                             item.raycastTarget = false;
                             items[position] = item;
+                            item.material = material;
                         }
                     }
                     ++position;
