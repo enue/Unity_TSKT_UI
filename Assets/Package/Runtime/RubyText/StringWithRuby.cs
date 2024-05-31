@@ -859,8 +859,9 @@ namespace TSKT
 
         public TypingText[] GetTypingSequence()
         {
+            var end = ToStringWithRuby();
             var result = new List<TypingText>();
-            for (int i = 0; i < body.Length; ++i)
+            for (int i = 0; i < body.Length - 1; ++i)
             {
                 if (body[i] == '\n')
                 {
@@ -868,11 +869,13 @@ namespace TSKT
                 }
                 else
                 {
+                    var substring = Substring(0, i + 1).ToStringWithRuby();
                     result.Add(new TypingText(
                         i + 1,
-                        Substring(0, i + 1).ToStringWithRuby()));
+                        new StringWithRuby(end.body, substring.rubies, substring.joinedRubyText)));
                 }
             }
+            result.Add(new TypingText(end.body.Length, end));
             return result.ToArray();
         }
     }
