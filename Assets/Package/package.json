@@ -1,8 +1,8 @@
 {
     "name": "com.github.enue.tskt_ui",
     "displayName": "TSKT UI",
-    "version": "0.25.1",
-    "unity": "2023.2",
+    "version": "0.25.2",
+    "unity": "6000.0",
     "description": "",
     "keywords": [],
     "category": "",
