@@ -857,17 +857,13 @@ namespace TSKT
             }
         }
 
-        public TypingText[] GetTypingSequence()
+        public TypingText[] GetTypingSequence(string skipCharacters = "\n")
         {
             var end = ToStringWithRuby();
             var result = new List<TypingText>();
             for (int i = 0; i < body.Length - 1; ++i)
             {
-                if (body[i] == '\n')
-                {
-                    // 改行はカウントしない
-                }
-                else
+                if (!skipCharacters.Contains(body[i]))
                 {
                     var substring = Substring(0, i + 1).ToStringWithRuby();
                     result.Add(new TypingText(
