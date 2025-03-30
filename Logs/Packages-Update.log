@@ -288,3 +288,20 @@ The following packages were added:
 The following packages were updated:
   com.unity.ai.navigation from version 2.0.0 to 2.0.4
   com.unity.test-framework from version 1.4.4 to 1.4.5
+
+=== Sat Feb 15 21:45:09 2025
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ai.navigation from version 2.0.4 to 2.0.5
+  com.unity.test-framework from version 1.4.5 to 1.4.6
+
+=== Sun Mar 30 11:07:28 2025
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.test-framework from version 1.4.6 to 1.5.1

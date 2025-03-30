@@ -84,8 +84,10 @@ namespace TSKT
                 }
 
                 // 改行を挟む場合はルビを分割
-                var newLine = new List<int>();
-                newLine.Add(0);
+                var newLine = new List<int>
+                {
+                    0
+                };
                 for (int i = 1; i < bodyCharactersForRuby.Length; ++i)
                 {
                     var index = i;
@@ -133,32 +135,30 @@ namespace TSKT
         {
             var settings = bodyText!.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
-            using (var generator = new TextGenerator(stringWithRuby.body.Length))
+            using var generator = new TextGenerator(stringWithRuby.body.Length);
+            generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
+
+            using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
             {
-                generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
+                characters.Clear();
+                generator.GetCharacters(characters);
 
-                using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
+                if (characters.Count > 0)
                 {
-                    characters.Clear();
-                    generator.GetCharacters(characters);
-
-                    if (characters.Count > 0)
+                    var builder = new ArrayBufferWriter<(float left, float right, float y)>(characters.Count);
+                    var scale = 1f / bodyText.pixelsPerUnit;
+                    foreach (var character in characters)
                     {
-                        var builder = new ArrayBufferWriter<(float left, float right, float y)>(characters.Count);
-                        var scale = 1f / bodyText.pixelsPerUnit;
-                        foreach (var character in characters)
-                        {
-                            var left = character.cursorPos.x * scale;
-                            var right = (character.cursorPos.x + character.charWidth) * scale;
-                            var y = character.cursorPos.y * scale;
-                            builder.Add((left, right, y));
-                        }
-                        return builder.WrittenSpan.ToArray();
+                        var left = character.cursorPos.x * scale;
+                        var right = (character.cursorPos.x + character.charWidth) * scale;
+                        var y = character.cursorPos.y * scale;
+                        builder.Add((left, right, y));
                     }
-                    else
-                    {
-                        return System.Array.Empty<(float left, float right, float y)>();
-                    }
+                    return builder.WrittenSpan.ToArray();
+                }
+                else
+                {
+                    return System.Array.Empty<(float left, float right, float y)>();
                 }
             }
         }
@@ -167,26 +167,24 @@ namespace TSKT
         {
             var settings = bodyText!.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
-            using (var generator = new TextGenerator(stringWithRuby.body.Length))
+            using var generator = new TextGenerator(stringWithRuby.body.Length);
+            generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
+
+            using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
             {
-                generator.PopulateWithErrors(stringWithRuby.body, settings, gameObject);
+                characters.Clear();
+                generator.GetCharacters(characters);
 
-                using (UnityEngine.Pool.ListPool<UICharInfo>.Get(out var characters))
+                if (characters.Count > 0)
                 {
-                    characters.Clear();
-                    generator.GetCharacters(characters);
-
-                    if (characters.Count > 0)
+                    var builder = new ArrayBufferWriter<bool>(characters.Count);
+                    foreach (var character in characters)
                     {
-                        var builder = new ArrayBufferWriter<bool>(characters.Count);
-                        foreach (var character in characters)
-                        {
-                            builder.Add(character.charWidth != 0f);
-                        }
-                        return builder.WrittenSpan.ToArray();
+                        builder.Add(character.charWidth != 0f);
                     }
-                    return System.Array.Empty<bool>();
+                    return builder.WrittenSpan.ToArray();
                 }
+                return System.Array.Empty<bool>();
             }
         }
 
