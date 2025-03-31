@@ -76,10 +76,12 @@ namespace TSKT.Tests
                     new TSKT.RichTextBuilder.Tag(2, "tag1", 3, "tag1"),
                     new TSKT.RichTextBuilder.Tag(6, "tag2", 7, "tag2"),
                     new TSKT.RichTextBuilder.Tag(12, "tag3", 13, "tag3"));
-            var sub = text.Substring(2, 10);
 
+            var sub = text.Substring(2, 10);
             Assert.AreEqual("だ！！\n邪神広告機構", sub.body.ToString());
             Assert.AreEqual("じゃろォ～～～", sub.ToStringWithRuby().joinedRubyText);
+            Assert.AreEqual(1, sub.ToStringWithRuby().rubies.Length);
+            Assert.AreEqual("邪tag2神広告機構", sub.ToStringWithRuby().body[sub.ToStringWithRuby().rubies[0].bodyStringRange.start..sub.ToStringWithRuby().rubies[0].bodyStringRange.end]);
 
             Assert.AreEqual(1, sub.ToStringWithRuby().rubies.Length);
 
