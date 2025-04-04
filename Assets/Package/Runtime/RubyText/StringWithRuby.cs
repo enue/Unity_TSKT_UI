@@ -91,10 +91,9 @@ namespace TSKT
             return new StringWithRuby(bodyText.ToString(), rubies.WrittenSpan.ToArray(), rubyText.ToString());
         }
 
-        public readonly int[] GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList)
+        public readonly void GetBodyQuadCountRubyQuadCountMap(bool[] bodyCharacterHasQuadList, IBufferWriter<int> writer)
         {
-            var builder = new ArrayBufferWriter<int>(bodyCharacterHasQuadList.Count(_ => _) + 1);
-            builder.Add(0);
+            writer.Add(0);
 
             var rubyLength = 0;
             for (int i = 0; i < bodyCharacterHasQuadList.Length; ++i)
@@ -119,10 +118,8 @@ namespace TSKT
 
                     rubyLength = ruby.textLength * currentQuadCountUnderRuby / totalQuadCountUnderRuby + ruby.textPosition;
                 }
-                builder.Add(rubyLength);
+                writer.Add(rubyLength);
             }
-
-            return builder.WrittenSpan.ToArray();
         }
 
         public readonly string ToHtml()

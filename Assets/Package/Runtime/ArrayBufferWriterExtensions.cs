@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace TSKT
 {
-    static class ArrayBufferWriterExtensions
+    static class IBufferWriterExtensions
     {
-        public static void Add<T>(this ArrayBufferWriter<T> writer, T item)
+        public static void Add<T>(this IBufferWriter<T> writer, T item)
         {
             writer.GetSpan(1)[0] = item;
             writer.Advance(1);

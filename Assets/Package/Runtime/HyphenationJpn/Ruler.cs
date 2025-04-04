@@ -180,7 +180,7 @@ namespace TSKT.HyphenationJpns
             float lineWidth = 0f;
             foreach (var word in GetWordList(message, disallowRanges))
             {
-                if (word[word.Length - 1] == '\n')
+                if (word[^1] == '\n')
                 {
                     lineWidth = 0f;
                     currentPosition += word.Length;

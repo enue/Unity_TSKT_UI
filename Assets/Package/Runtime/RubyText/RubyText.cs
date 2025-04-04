@@ -60,14 +60,15 @@ namespace TSKT
                 return;
             }
 
-            var bodyCharacterPositions = GetBodyCharacterPositions();
+            var bodyCharacterPositions = new ArrayBufferWriter<(float left, float right, float y)>();
+            GetBodyCharacterPositions(bodyCharacterPositions);
             foreach (var ruby in stringWithRuby.rubies)
             {
                 // 幅がない文字はおそらく制御文字やタグなので撥ねる
                 Span<(float left, float right, float y)> bodyCharactersForRuby = stackalloc (float left, float right, float y)[ruby.bodyStringRange.length];
                 {
                     int index = 0;
-                    foreach (var it in bodyCharacterPositions.AsSpan(ruby.bodyStringRange.start, ruby.bodyStringRange.length))
+                    foreach (var it in bodyCharacterPositions.WrittenSpan.Slice(ruby.bodyStringRange.start, ruby.bodyStringRange.length))
                     {
                         if (it.left != it.right)
                         {
@@ -131,7 +132,7 @@ namespace TSKT
             }
         }
 
-        (float left, float right, float y)[] GetBodyCharacterPositions()
+        void GetBodyCharacterPositions(IBufferWriter<(float left, float right, float y)> writer)
         {
             var settings = bodyText!.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
@@ -143,27 +144,18 @@ namespace TSKT
                 characters.Clear();
                 generator.GetCharacters(characters);
 
-                if (characters.Count > 0)
+                var scale = 1f / bodyText.pixelsPerUnit;
+                foreach (var character in characters)
                 {
-                    var builder = new ArrayBufferWriter<(float left, float right, float y)>(characters.Count);
-                    var scale = 1f / bodyText.pixelsPerUnit;
-                    foreach (var character in characters)
-                    {
-                        var left = character.cursorPos.x * scale;
-                        var right = (character.cursorPos.x + character.charWidth) * scale;
-                        var y = character.cursorPos.y * scale;
-                        builder.Add((left, right, y));
-                    }
-                    return builder.WrittenSpan.ToArray();
-                }
-                else
-                {
-                    return System.Array.Empty<(float left, float right, float y)>();
+                    var left = character.cursorPos.x * scale;
+                    var right = (character.cursorPos.x + character.charWidth) * scale;
+                    var y = character.cursorPos.y * scale;
+                    writer.Add((left, right, y));
                 }
             }
         }
 
-        bool[] GetBodyCharacterHasQuadList()
+        void GetBodyCharacterHasQuadList(IBufferWriter<bool> writer)
         {
             var settings = bodyText!.GetGenerationSettings(bodyText.rectTransform.rect.size);
 
@@ -175,16 +167,10 @@ namespace TSKT
                 characters.Clear();
                 generator.GetCharacters(characters);
 
-                if (characters.Count > 0)
+                foreach (var character in characters)
                 {
-                    var builder = new ArrayBufferWriter<bool>(characters.Count);
-                    foreach (var character in characters)
-                    {
-                        builder.Add(character.charWidth != 0f);
-                    }
-                    return builder.WrittenSpan.ToArray();
+                    writer.Add(character.charWidth != 0f);
                 }
-                return System.Array.Empty<bool>();
             }
         }
 
@@ -310,10 +296,11 @@ namespace TSKT
             }
         }
 
-        public int[] GetBodyQuadCountRubyQuadCountMap()
+        public void GetBodyQuadCountRubyQuadCountMap(IBufferWriter<int> writer)
         {
-            var characterHasQuadList = GetBodyCharacterHasQuadList();
-            return stringWithRuby.GetBodyQuadCountRubyQuadCountMap(characterHasQuadList);
+            var characterHasQuadList = new ArrayBufferWriter<bool>();
+            GetBodyCharacterHasQuadList(characterHasQuadList);
+            stringWithRuby.GetBodyQuadCountRubyQuadCountMap(characterHasQuadList.WrittenSpan.ToArray(), writer);
         }
     }
 }

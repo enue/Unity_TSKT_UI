@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +23,9 @@ namespace TSKT
             var body = bodyTypingEffects[0].Text;
             ruby.Set(text);
             body.text = text.body;
-            bodyQuadCountRubyQuadCountMap = ruby.GetBodyQuadCountRubyQuadCountMap();
+            var writer = new ArrayBufferWriter<int>();
+            ruby.GetBodyQuadCountRubyQuadCountMap(writer);
+            bodyQuadCountRubyQuadCountMap = writer.WrittenSpan.ToArray();
             duration = bodyTypingEffects[0].GetDuration(bodyQuadCountRubyQuadCountMap.Length - 1);
 
             Update(0f);
