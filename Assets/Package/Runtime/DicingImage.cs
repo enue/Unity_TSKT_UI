@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System;
 
 namespace TSKT
 {
@@ -83,7 +84,7 @@ namespace TSKT
 
         public void SetSingleSprite(Sprite sprite)
         {
-            Sprite = new DicingSprite(new Sprite[1] { sprite });
+            Sprite = new DicingSprite(sprite);
             Rebuild();
         }
 
@@ -134,8 +135,13 @@ namespace TSKT
                     areaInImage = Rect.MinMaxRect(0f, 0f, 1f, 1f);
                 }
 
-                foreach (var it in sprite.sprites.Zip(sprite.SpriteRects, (sprite, rect) => (sprite, rect)))
+                Span<Rect> rects = stackalloc Rect[sprite.SpriteRectCount];
+                sprite.GetSpriteRects(rects);
+                Span<int> instanceIds = stackalloc int[rects.Length];
+                for (int i = 0; i < rects.Length; i++)
                 {
+                    var it = (sprite: sprite.sprites[i], rect: rects[i]);
+
                     if (items.Count == position)
                     {
                         items.Add(null);
@@ -178,8 +184,9 @@ namespace TSKT
                     item.rectTransform.offsetMin = new Vector2(0f, 0f);
                     item.rectTransform.offsetMax = new Vector2(0f, 0f);
 
-                    item.gameObject.SetActive(true);
+                    instanceIds[i] = item.gameObject.GetInstanceID();
                 }
+                GameObject.SetGameObjectsActive(instanceIds, true);
             }
             finally
             {

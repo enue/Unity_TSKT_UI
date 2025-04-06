@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 #nullable enable
 
 namespace TSKT
@@ -54,6 +55,36 @@ namespace TSKT
                 }
 
                 return sprites.Select(_ => _.rect).ToArray();
+            }
+        }
+        public readonly int SpriteRectCount
+        {
+            get
+            {
+                if (spriteRects != null && spriteRects.Length > 0)
+                {
+                    return spriteRects.Length;
+                }
+                if (sprites == null)
+                {
+                    return 0;
+                }
+                return sprites.Length;
+            }
+        }
+        public readonly void GetSpriteRects(System.Span<Rect> dest)
+        {
+            for (int i = 0; i < sprites.Length; i++)
+            {
+                if (spriteRects != null && spriteRects.Length > 0)
+                {
+                    spriteRects.CopyTo(dest);
+                }
+                if (sprites == null)
+                {
+                    return;
+                }
+                dest[i] = sprites[i].rect;
             }
         }
 
