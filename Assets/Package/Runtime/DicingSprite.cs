@@ -74,16 +74,17 @@ namespace TSKT
         }
         public readonly void GetSpriteRects(System.Span<Rect> dest)
         {
+            if (spriteRects != null && spriteRects.Length > 0)
+            {
+                spriteRects.CopyTo(dest);
+                return;
+            }
+            if (sprites == null)
+            {
+                return;
+            }
             for (int i = 0; i < sprites.Length; i++)
             {
-                if (spriteRects != null && spriteRects.Length > 0)
-                {
-                    spriteRects.CopyTo(dest);
-                }
-                if (sprites == null)
-                {
-                    return;
-                }
                 dest[i] = sprites[i].rect;
             }
         }
