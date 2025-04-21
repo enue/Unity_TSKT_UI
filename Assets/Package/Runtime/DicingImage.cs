@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using System;
+using Unity.Burst;
+using Unity.Jobs;
+using Unity.Collections;
 
 namespace TSKT
 {
@@ -103,45 +106,14 @@ namespace TSKT
                     return;
                 }
 
-                var spriteSize = sprite.Size;
-                Rect areaInImage;
-                if (preserveAspect)
-                {
-                    var imageSize = RectTransform.rect.size;
-                    // if (spriteSize.y / spriteSize.x > size.y / size.x)
-                    if (spriteSize.y * imageSize.x > imageSize.y * spriteSize.x)
-                    {
-                        // 画像が縦長
-                        var width = imageSize.y * spriteSize.x / (imageSize.x * spriteSize.y);
-                        areaInImage = Rect.MinMaxRect(
-                            0.5f - width / 2f, 0f,
-                            0.5f + width / 2f, 1f);
-                    }
-                    else if (spriteSize.y * imageSize.x < imageSize.y * spriteSize.x)
-                    {
-                        // 画像が横長
-                        var height = imageSize.x * spriteSize.y / (imageSize.y * spriteSize.x);
-                        areaInImage = Rect.MinMaxRect(
-                            0f, 0.5f - height / 2f,
-                            1f, 0.5f + height / 2f);
-                    }
-                    else
-                    {
-                        areaInImage = Rect.MinMaxRect(0f, 0f, 1f, 1f);
-                    }
-                }
-                else
-                {
-                    areaInImage = Rect.MinMaxRect(0f, 0f, 1f, 1f);
-                }
-
                 Span<Rect> rects = stackalloc Rect[sprite.SpriteRectCount];
                 sprite.GetSpriteRects(rects);
+                using var anchorSolver = new AnchorSolver(rects, sprite.Size, preserveAspect, RectTransform.rect.size);
+                var jobHandle = anchorSolver.Schedule();
+
                 Span<int> instanceIds = stackalloc int[rects.Length];
                 for (int i = 0; i < rects.Length; i++)
                 {
-                    var it = (sprite: sprite.sprites[i], rect: rects[i]);
-
                     if (items.Count == position)
                     {
                         items.Add(null);
@@ -165,26 +137,20 @@ namespace TSKT
                         }
                     }
                     ++position;
-                    item!.sprite = it.sprite;
+                    item!.sprite = sprite.sprites[i];
                     item.color = color;
                     item.useSpriteMesh = useSpriteMesh;
-
-                    var bottom = it.rect.yMin / spriteSize.y;
-                    var top = it.rect.yMax / spriteSize.y;
-                    var left = it.rect.xMin / spriteSize.x;
-                    var right = it.rect.xMax / spriteSize.x;
-
-                    item.rectTransform.anchorMin = new Vector2(
-                        Mathf.Lerp(areaInImage.xMin, areaInImage.xMax, left),
-                        Mathf.Lerp(areaInImage.yMin, areaInImage.yMax, bottom));
-                    item.rectTransform.anchorMax = new Vector2(
-                        Mathf.Lerp(areaInImage.xMin, areaInImage.xMax, right),
-                        Mathf.Lerp(areaInImage.yMin, areaInImage.yMax, top));
-
                     item.rectTransform.offsetMin = new Vector2(0f, 0f);
                     item.rectTransform.offsetMax = new Vector2(0f, 0f);
 
                     instanceIds[i] = item.gameObject.GetInstanceID();
+                }
+                jobHandle.Complete();
+                for (int i = 0; i < position; i++)
+                {
+                    var item = items[i];
+                    item.rectTransform.anchorMin = anchorSolver.anchorMins[i];
+                    item.rectTransform.anchorMax = anchorSolver.anchorMaxs[i];
                 }
                 GameObject.SetGameObjectsActive(instanceIds, true);
             }
@@ -217,6 +183,91 @@ namespace TSKT
             if (preserveAspect)
             {
                 Rebuild();
+            }
+        }
+
+
+        [BurstCompile]
+        struct AnchorSolver : IJob, IDisposable
+        {
+            [Unity.Collections.ReadOnly]
+            NativeArray<Rect> spriteRects;
+
+            [Unity.Collections.ReadOnly]
+            Rect areaInImage;
+
+            [Unity.Collections.ReadOnly]
+            Vector2 spriteSize;
+
+            [Unity.Collections.WriteOnly]
+            public NativeArray<Vector2> anchorMins;
+
+            [Unity.Collections.WriteOnly]
+            public NativeArray<Vector2> anchorMaxs;
+
+            public AnchorSolver(in ReadOnlySpan<Rect> spriteRects, Vector2 spriteSize, bool preserveAspect, Vector2 imageSize)
+            {
+                this.spriteRects = new NativeArray<Rect>(spriteRects.Length, Allocator.TempJob);
+                spriteRects.CopyTo(this.spriteRects);
+                anchorMaxs = new NativeArray<Vector2>(spriteRects.Length, Allocator.TempJob);
+                anchorMins = new NativeArray<Vector2>(spriteRects.Length, Allocator.TempJob);
+
+                this.spriteSize = spriteSize;
+
+                if (preserveAspect)
+                {
+                    // if (spriteSize.y / spriteSize.x > size.y / size.x)
+                    if (spriteSize.y * imageSize.x > imageSize.y * spriteSize.x)
+                    {
+                        // 画像が縦長
+                        var width = imageSize.y * spriteSize.x / (imageSize.x * spriteSize.y);
+                        areaInImage = Rect.MinMaxRect(
+                            0.5f - width / 2f, 0f,
+                            0.5f + width / 2f, 1f);
+                    }
+                    else if (spriteSize.y * imageSize.x < imageSize.y * spriteSize.x)
+                    {
+                        // 画像が横長
+                        var height = imageSize.x * spriteSize.y / (imageSize.y * spriteSize.x);
+                        areaInImage = Rect.MinMaxRect(
+                            0f, 0.5f - height / 2f,
+                            1f, 0.5f + height / 2f);
+                    }
+                    else
+                    {
+                        areaInImage = Rect.MinMaxRect(0f, 0f, 1f, 1f);
+                    }
+                }
+                else
+                {
+                    areaInImage = Rect.MinMaxRect(0f, 0f, 1f, 1f);
+                }
+
+            }
+            public void Dispose()
+            {
+                spriteRects.Dispose();
+                anchorMins.Dispose();
+                anchorMaxs.Dispose();
+            }
+
+            public void Execute()
+            {
+                for (int i = 0; i < spriteRects.Length; i++)
+                {
+                    var rect = spriteRects[i];
+                    var bottom = rect.yMin / spriteSize.y;
+                    var top = rect.yMax / spriteSize.y;
+                    var left = rect.xMin / spriteSize.x;
+                    var right = rect.xMax / spriteSize.x;
+
+                    anchorMins[i] = new Vector2(
+                        Mathf.Lerp(areaInImage.xMin, areaInImage.xMax, left),
+                        Mathf.Lerp(areaInImage.yMin, areaInImage.yMax, bottom));
+                    anchorMaxs[i] = new Vector2(
+                        Mathf.Lerp(areaInImage.xMin, areaInImage.xMax, right),
+                        Mathf.Lerp(areaInImage.yMin, areaInImage.yMax, top));
+                }
             }
         }
     }
