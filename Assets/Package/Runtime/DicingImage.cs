@@ -111,7 +111,7 @@ namespace TSKT
                 using var anchorSolver = new AnchorSolver(rects, sprite.Size, preserveAspect, RectTransform.rect.size);
                 var jobHandle = anchorSolver.Schedule();
 
-                Span<int> instanceIds = stackalloc int[rects.Length];
+                Span<EntityId> instanceIds = stackalloc EntityId[rects.Length];
                 for (int i = 0; i < rects.Length; i++)
                 {
                     if (items.Count == position)
@@ -143,7 +143,7 @@ namespace TSKT
                     item.rectTransform.offsetMin = new Vector2(0f, 0f);
                     item.rectTransform.offsetMax = new Vector2(0f, 0f);
 
-                    instanceIds[i] = item.gameObject.GetInstanceID();
+                    instanceIds[i] = item.gameObject.GetEntityId();
                 }
                 jobHandle.Complete();
                 for (int i = 0; i < position; i++)
