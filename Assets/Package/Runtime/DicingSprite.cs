@@ -87,6 +87,34 @@ namespace TSKT
         }
         public readonly bool Empty => sprites == null || sprites.Length == 0;
 
+        public static DicingSprite Combine(params DicingSprite[] items)
+        {
+            var capacity = items.Sum(_ => _.sprites.Length);
+
+            var sprites = new Sprite[capacity];
+            var spriteSpan = sprites.AsSpan();
+            foreach (var item in items)
+            {
+                item.sprites.CopyTo(spriteSpan);
+                spriteSpan = spriteSpan[item.sprites.Length..];
+            }
+            var result = new DicingSprite(sprites);
+            if (items.All(_ => _.spriteRects == null || _.spriteRects.Length == 0))
+            {
+                return result;
+            }
+
+            var rects = new Rect[capacity];
+            var rectSpan = rects.AsSpan();
+            foreach (var item in items)
+            {
+                var _rects = rectSpan[..item.SpriteRectCount];
+                item.GetSpriteRects(_rects);
+                rectSpan = rectSpan[_rects.Length..];
+            }
+            result.spriteRects = rects;
+            return result;
+        }
 
 #if UNITY_EDITOR
         public void AutoCorrect()
