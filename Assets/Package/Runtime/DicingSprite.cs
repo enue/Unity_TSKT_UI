@@ -29,9 +29,16 @@ namespace TSKT
                 {
                     return Vector2.zero;
                 }
+                Span<Rect> rects = stackalloc Rect[SpriteRectCount];
+                GetSpriteRects(rects);
 
-                var w = sprites.Max(_ => _.rect.xMax);
-                var h = sprites.Max(_ => _.rect.yMax);
+                float w = 0f;
+                float h = 0f;
+                foreach (var it in rects)
+                {
+                    w = Math.Max(w, it.xMax);
+                    h = Math.Max(h, it.yMax);
+                }
                 return new Vector2(w, h);
             }
         }
@@ -40,23 +47,6 @@ namespace TSKT
 
         [SerializeField]
         Rect[]? spriteRects;
-        public readonly Rect[] SpriteRects
-        {
-            get
-            {
-                if (spriteRects != null && spriteRects.Length > 0)
-                {
-                    return spriteRects;
-                }
-
-                if (sprites == null)
-                {
-                    return System.Array.Empty<Rect>();
-                }
-
-                return sprites.Select(_ => _.rect).ToArray();
-            }
-        }
         public readonly int SpriteRectCount
         {
             get
