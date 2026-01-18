@@ -87,32 +87,46 @@ namespace TSKT
         }
         public readonly bool Empty => sprites == null || sprites.Length == 0;
 
-        public static DicingSprite Combine(params DicingSprite[] items)
+        public static DicingSprite Combine(in ReadOnlySpan<DicingSprite> items)
         {
-            var capacity = items.Sum(_ => _.sprites.Length);
-
-            var sprites = new Sprite[capacity];
-            var spriteSpan = sprites.AsSpan();
-            foreach (var item in items)
+            int capacity = 0;
+            foreach(var it in items)
             {
-                item.sprites.CopyTo(spriteSpan);
-                spriteSpan = spriteSpan[item.sprites.Length..];
-            }
-            var result = new DicingSprite(sprites);
-            if (items.All(_ => _.spriteRects == null || _.spriteRects.Length == 0))
-            {
-                return result;
+                capacity += it.sprites.Length;
             }
 
-            var rects = new Rect[capacity];
-            var rectSpan = rects.AsSpan();
+            var result = new DicingSprite(new Sprite[capacity]);
+            var sprites = result.sprites.AsSpan();
             foreach (var item in items)
             {
-                var _rects = rectSpan[..item.SpriteRectCount];
+                item.sprites.CopyTo(sprites);
+                sprites = sprites[item.sprites.Length..];
+            }
+
+            {
+                var hasRects = false;
+                foreach (var it in items)
+                {
+                    if (it.spriteRects != null && it.spriteRects.Length > 0)
+                    {
+                        hasRects = true;
+                        break;
+                    }
+                }
+                if (!hasRects)
+                {
+                    return result;
+                }
+            }
+
+            result.spriteRects = new Rect[capacity];
+            var rects = result.spriteRects.AsSpan();
+            foreach (var item in items)
+            {
+                var _rects = rects[..item.SpriteRectCount];
                 item.GetSpriteRects(_rects);
-                rectSpan = rectSpan[_rects.Length..];
+                rects = rects[_rects.Length..];
             }
-            result.spriteRects = rects;
             return result;
         }
 
