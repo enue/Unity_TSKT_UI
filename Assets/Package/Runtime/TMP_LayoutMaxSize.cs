@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using System;
 #nullable enable
 
 namespace TSKT
 {
+#if UNITY_6000_6_OR_NEWER
+    [Obsolete("use LayoutElement")]
+#endif
     [DisallowMultipleComponent]
     [RequireComponent(typeof(TMPro.TMP_Text))]
     public class TMP_LayoutMaxSize : MonoBehaviour, ILayoutElement
@@ -12,17 +16,23 @@ namespace TSKT
         TMPro.TMP_Text? text;
         TMPro.TMP_Text Text => text ? text! : (text = GetComponent<TMPro.TMP_Text>());
 
-        [SerializeField]
-        float maxWidth = -1;
-
-        [SerializeField]
-        float maxHeight = -1;
-
         public float flexibleHeight => -1f;
         public float flexibleWidth => -1f;
         public int layoutPriority => 1;
         public float minHeight => -1f;
         public float minWidth => -1f;
+
+#if UNITY_6000_6_OR_NEWER
+        public float maxWidth => -1f;
+        public float maxHeight => -1f;
+        public float preferredWidth => -1f;
+        public float preferredHeight => -1f;
+#else
+        [SerializeField]
+        float maxWidth = -1;
+
+        [SerializeField]
+        float maxHeight = -1;
 
         public float preferredHeight
         {
@@ -56,6 +66,7 @@ namespace TSKT
                 SetDirty();
             }
         }
+#endif
         public void CalculateLayoutInputHorizontal() { }
         public void CalculateLayoutInputVertical() { }
 
