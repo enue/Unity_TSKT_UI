@@ -5,9 +5,6 @@ using UnityEngine.UI;
 
 namespace TSKT
 {
-#if UNITY_6000_6_OR_NEWER
-    [Obsolete("use LayoutElement")]
-#endif
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Text))]
     public class LayoutMaxSize : MonoBehaviour, ILayoutElement
@@ -15,6 +12,11 @@ namespace TSKT
         Text? text;
         Text Text => text ? text! : (text = GetComponent<Text>());
 
+        [SerializeField]
+        float maxWidth = -1;
+
+        [SerializeField]
+        float maxHeight = -1;
 
         public float flexibleHeight => -1f;
         public float flexibleWidth => -1f;
@@ -22,17 +24,6 @@ namespace TSKT
         public float minHeight => -1f;
         public float minWidth => -1f;
 
-#if UNITY_6000_6_OR_NEWER
-        public float maxWidth => -1f;
-        public float maxHeight => -1f;
-        public float preferredWidth => -1f;
-        public float preferredHeight => -1f;
-#else
-        [SerializeField]
-        float maxWidth = -1;
-
-        [SerializeField]
-        float maxHeight = -1;
         public float preferredHeight
         {
             get
@@ -65,7 +56,6 @@ namespace TSKT
                 SetDirty();
             }
         }
-#endif
         public void CalculateLayoutInputHorizontal() { }
         public void CalculateLayoutInputVertical() { }
 
