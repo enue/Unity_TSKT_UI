@@ -1,12 +1,24 @@
-﻿using UnityEngine;
+﻿#nullable enable
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
-#nullable enable
+using System;
 
 namespace TSKT
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Text))]
+#if UNITY_6000_6_OR_NEWER
+    [Obsolete("use LayoutElement")]
+    public class LayoutMaxSize : MonoBehaviour
+    {
+        [SerializeField]
+        float maxWidth = -1;
+
+        [SerializeField]
+        float maxHeight = -1;
+    }
+#else
     public class LayoutMaxSize : MonoBehaviour, ILayoutElement
     {
         Text? text;
@@ -75,5 +87,6 @@ namespace TSKT
         }
 #endif
     }
+#endif
 }
 

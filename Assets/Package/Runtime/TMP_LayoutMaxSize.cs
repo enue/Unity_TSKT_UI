@@ -1,12 +1,24 @@
-﻿using UnityEngine;
+﻿#nullable enable
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
-#nullable enable
+using System;
 
 namespace TSKT
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(TMPro.TMP_Text))]
+#if UNITY_6000_6_OR_NEWER
+    [Obsolete("use LayoutElement")]
+    public class TMP_LayoutMaxSize : MonoBehaviour
+    {
+        [SerializeField]
+        float maxWidth = -1;
+
+        [SerializeField]
+        float maxHeight = -1;
+    }
+#else
     public class TMP_LayoutMaxSize : MonoBehaviour, ILayoutElement
     {
         TMPro.TMP_Text? text;
@@ -75,6 +87,7 @@ namespace TSKT
         }
 #endif
     }
+#endif
 }
 
 
