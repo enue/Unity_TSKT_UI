@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿#nullable enable
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
-#nullable enable
+using System;
 
 namespace TSKT
 {
