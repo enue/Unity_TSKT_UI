@@ -69,7 +69,7 @@ namespace TSKT
         public async Awaitable Enable(float duration)
         {
             using var handler = Enable();
-            await System.Threading.Tasks.Task.Delay((int)(duration * 1000));
+            await Observable.Timer(System.TimeSpan.FromSeconds(duration)).FirstAsync();
         }
     }
 }
