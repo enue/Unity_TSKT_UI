@@ -31,11 +31,6 @@ namespace TSKT
         }
 
         public static TopModal? Instance { get; private set; }
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void Init()
-        {
-            Instance = null;
-        }
 
         int nextHandlerId;
         readonly HashSet<int> handlerIds = new();
