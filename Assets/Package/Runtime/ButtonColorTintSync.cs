@@ -26,13 +26,9 @@ namespace TSKT
         {
             get
             {
-                if (updatedTargets == null)
+                if (updatedTargets == null || updatedTargets.Length != targets.Length)
                 {
                     updatedTargets = new bool[targets.Length];
-                    for (int i = 0; i < targets.Length; ++i)
-                    {
-                        updatedTargets[i] = false;
-                    }
                 }
                 return updatedTargets;
             }
