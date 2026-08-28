@@ -575,9 +575,18 @@ namespace TSKT
                     for (int i = 0; i < tags.Length; ++i)
                     {
                         var tag = tags[i];
-                        builder.Add((tag.leftIndex, tag.left, subSort: -i));
-                        if (tag.right != null)
+                        if (tag.right == null)
                         {
+                            builder.Add((tag.leftIndex, tag.left, subSort: int.MaxValue));
+                        }
+                        else if (tag.rightIndex == tag.leftIndex)
+                        {
+                            // length=0の場合は無視する
+                            continue;
+                        }
+                        else
+                        {
+                            builder.Add((tag.leftIndex, tag.left, subSort: int.MaxValue));
                             builder.Add((tag.rightIndex, tag.right, subSort: i));
                         }
                     }
