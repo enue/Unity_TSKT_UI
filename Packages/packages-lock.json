@@ -71,7 +71,7 @@
       "dependencies": {}
     },
     "com.unity.ext.nunit": {
-      "version": "2.1.0",
+      "version": "2.1.1",
       "depth": 1,
       "source": "builtin",
       "dependencies": {}
@@ -109,7 +109,7 @@
       }
     },
     "com.unity.timeline": {
-      "version": "6.6.0",
+      "version": "6.7.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {
@@ -120,7 +120,7 @@
       }
     },
     "com.unity.ugui": {
-      "version": "2.6.0",
+      "version": "2.7.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {
