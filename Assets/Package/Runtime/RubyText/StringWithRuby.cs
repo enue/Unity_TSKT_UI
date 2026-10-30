@@ -854,6 +854,11 @@ namespace TSKT
 
         public TypingText[] GetTypingSequence(string skipCharacters = "\n")
         {
+            if (body.Length == 0)
+            {
+                return System.Array.Empty<TypingText>();
+            }
+
             var end = ToStringWithRuby();
             var result = new List<TypingText>();
             for (int i = 0; i < body.Length - 1; ++i)
