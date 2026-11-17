@@ -30,17 +30,30 @@ namespace TSKT
         [Tooltip("ルビが本文より短いとき、本文の幅いっぱいに字間を広げる")]
         bool justify = true;
 
+        [SerializeField]
+        [Tooltip("行の高さ（フォントの行の高さに対する%）。ルビの有無に関係なく行間が揃う。0ならTextMeshProに任せる（ルビのある行だけ行間が広がる）")]
+        [Min(0f)]
+        float lineHeight = 100f;
+
         public void Set(in StringWithRuby stringWithRuby)
         {
-            Text.text = ToTaggedText(stringWithRuby, Text, rubyScale, rubyOffset, justify);
+            Text.text = ToTaggedText(stringWithRuby, Text, rubyScale, rubyOffset, justify, lineHeight);
         }
 
+        /// <param name="lineHeight">行の高さ（フォントの行の高さに対する%）。0以下なら指定しない</param>
         public static string ToTaggedText(in StringWithRuby source, TMP_Text text,
-            float rubyScale = 0.5f, float rubyOffset = 1f, bool justify = true)
+            float rubyScale = 0.5f, float rubyOffset = 1f, bool justify = true, float lineHeight = 100f)
         {
+            if (string.IsNullOrEmpty(source.body))
+            {
+                return string.Empty;
+            }
+            // 行の高さを固定すると、TextMeshProは高い文字（ルビ）に合わせて行をずらさなくなる
+            var prefix = lineHeight > 0f ? "<line-height=" + Format(lineHeight) + "%>" : "";
+
             if (source.rubies == null || source.rubies.Length == 0)
             {
-                return source.body ?? string.Empty;
+                return prefix + source.body;
             }
 
             // 字間はsizeタグに関係なく、本来のフォントサイズの1/100em単位で1文字ごとに足される
@@ -58,6 +71,7 @@ namespace TSKT
 
             var body = source.body.AsSpan();
             var builder = new StringBuilder(source.body.Length + source.joinedRubyText.Length + source.rubies.Length * 96);
+            builder.Append(prefix);
             Span<char> buffer = body.Length <= 512 ? stackalloc char[body.Length] : new char[body.Length];
             var position = 0;
             foreach (var it in source.rubies)
