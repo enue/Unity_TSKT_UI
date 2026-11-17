@@ -14,18 +14,8 @@ namespace TSKT
     [RequireComponent(typeof(TMP_Text))]
     public class TMP_RubyText : MonoBehaviour
     {
-        /// <summary>文字列の幅をem単位（フォントサイズを1とした値）で返す</summary>
-        public delegate float MeasureWidth(ReadOnlySpan<char> text);
-
         TMP_Text? text;
-        TMP_Text OwnText => text ? text! : (text = GetComponent<TMP_Text>());
-
-        /// <summary>本文とルビを表示するテキスト</summary>
-        public TMP_Text Text => bodyText ? bodyText! : OwnText;
-
-        [SerializeField]
-        [Tooltip("未設定なら同じGameObjectのTMP_Textに表示する。ルビ用オブジェクトを分けていた旧構成のシーンでは、ここで参照している本文側にまとめて表示する")]
-        TMP_Text? bodyText = default;
+        public TMP_Text Text => text ? text! : (text = GetComponent<TMP_Text>());
 
         [SerializeField]
         [Tooltip("本文に対するルビの大きさ")]
@@ -40,58 +30,37 @@ namespace TSKT
         [Tooltip("ルビが本文より短いとき、本文の幅いっぱいに字間を広げる")]
         bool justify = true;
 
-        public void Set(in StringWithRuby stringWithRuby, bool updateMesh = false)
+        public void Set(in StringWithRuby stringWithRuby)
         {
-            var target = Text;
-            target.text = ToTaggedText(stringWithRuby, target, rubyScale, rubyOffset, justify);
-
-            if (bodyText && OwnText != bodyText)
-            {
-                // 旧構成のルビ用テキストは使わない
-                OwnText.text = string.Empty;
-            }
-
-            if (updateMesh)
-            {
-                target.ForceMeshUpdate();
-            }
+            Text.text = ToTaggedText(stringWithRuby, Text, rubyScale, rubyOffset, justify);
         }
 
         public static string ToTaggedText(in StringWithRuby source, TMP_Text text,
             float rubyScale = 0.5f, float rubyOffset = 1f, bool justify = true)
-        {
-            // 字間はsizeタグに関係なく、本来のフォントサイズの1/100em単位で1文字ごとに足される
-            var spacing = text.characterSpacing;
-            var font = text.font;
-            if (font)
-            {
-                spacing += font.normalSpacingOffset;
-                if ((text.fontStyle & FontStyles.Bold) != 0)
-                {
-                    spacing += font.boldSpacing;
-                }
-            }
-            return ToTaggedText(source, _ => Measure(text, _), rubyScale, rubyOffset, justify, spacing * 0.01f);
-        }
-
-        /// <param name="measure">字間を含まない、グリフの送り幅の合計（em）を返す</param>
-        /// <param name="characterSpacing">1文字ごとに足される字間（em）。ルビにも縮小されずに同じ量が足される</param>
-        public static string ToTaggedText(in StringWithRuby source, MeasureWidth measure,
-            float rubyScale = 0.5f, float rubyOffset = 1f, bool justify = true, float characterSpacing = 0f)
         {
             if (source.rubies == null || source.rubies.Length == 0)
             {
                 return source.body ?? string.Empty;
             }
 
-            var rubies = (Ruby[])source.rubies.Clone();
-            Array.Sort(rubies, static (a, b) => a.bodyStringRange.start.CompareTo(b.bodyStringRange.start));
+            // 字間はsizeタグに関係なく、本来のフォントサイズの1/100em単位で1文字ごとに足される
+            var characterSpacing = text.characterSpacing;
+            var font = text.font;
+            if (font)
+            {
+                characterSpacing += font.normalSpacingOffset;
+                if ((text.fontStyle & FontStyles.Bold) != 0)
+                {
+                    characterSpacing += font.boldSpacing;
+                }
+            }
+            characterSpacing *= 0.01f;
 
             var body = source.body.AsSpan();
-            var builder = new StringBuilder(source.body.Length + source.joinedRubyText.Length + rubies.Length * 96);
+            var builder = new StringBuilder(source.body.Length + source.joinedRubyText.Length + source.rubies.Length * 96);
             Span<char> buffer = body.Length <= 512 ? stackalloc char[body.Length] : new char[body.Length];
             var position = 0;
-            foreach (var it in rubies)
+            foreach (var it in source.rubies)
             {
                 var range = it.bodyStringRange;
                 if (range.length <= 0
@@ -109,8 +78,8 @@ namespace TSKT
 
                 var plainBody = RemoveTags(rubyBody, buffer);
                 var rubyCount = CountTextElements(ruby);
-                var bodyWidth = measure(plainBody) + characterSpacing * CountTextElements(plainBody);
-                var rubyWidth = measure(ruby) * rubyScale + characterSpacing * rubyCount;
+                var bodyWidth = Measure(text, plainBody) + characterSpacing * CountTextElements(plainBody);
+                var rubyWidth = Measure(text, ruby) * rubyScale + characterSpacing * rubyCount;
 
                 AppendRuby(builder, rubyBody, ruby, bodyWidth, rubyWidth, rubyCount,
                     rubyScale, rubyOffset, justify);

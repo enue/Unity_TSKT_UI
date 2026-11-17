@@ -37,15 +37,7 @@ namespace TSKT
         TMP_RubyText? textMeshProRuby = default;
 
         [SerializeField]
-        TMPro.TextMeshProUGUI? textMeshProBody = default;
-
-
-        [SerializeField]
         TMP_RubyText? textMeshProRubyForTypingMessage = default;
-
-        [SerializeField]
-        TMPro.TMP_Text? textMeshProBodyForTypingMessage = default;
-
 
 
         void Start()
