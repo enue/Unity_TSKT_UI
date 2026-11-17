@@ -35,6 +35,99 @@ namespace TSKT
         [Min(0f)]
         float lineHeight = 100f;
 
+        [SerializeField]
+        [Tooltip("1行目にルビがあっても、本文の位置をルビがないときと同じにする（ルビは上にはみ出す）")]
+        bool keepBodyPosition = true;
+
+        void OnEnable()
+        {
+            Text.OnPreRenderText += OnPreRenderText;
+        }
+
+        void OnDisable()
+        {
+            if (text)
+            {
+                text!.OnPreRenderText -= OnPreRenderText;
+            }
+        }
+
+        /// <summary>
+        /// TextMeshProは1行目のいちばん高い文字を基準に縦位置を決めるので、1行目にルビがあるとその分だけ全体が下がる。
+        /// レイアウトの後で、下がった分だけ頂点を上に戻す。
+        /// </summary>
+        void OnPreRenderText(TMP_TextInfo textInfo)
+        {
+            if (!keepBodyPosition || textInfo.lineCount == 0 || textInfo.characterCount == 0)
+            {
+                return;
+            }
+            var ratio = Text.verticalAlignment switch
+            {
+                VerticalAlignmentOptions.Top => 1f,
+                VerticalAlignmentOptions.Middle => 0.5f,
+                _ => 0f,
+            };
+            if (ratio == 0f)
+            {
+                return;
+            }
+
+            var first = textInfo.lineInfo[0].firstCharacterIndex;
+            var last = Mathf.Min(textInfo.lineInfo[0].lastCharacterIndex, textInfo.characterCount - 1);
+
+            // 行頭以外の空白は高さの計算に使われない
+            static bool Counts(in TMP_CharacterInfo info, bool isFirst) => isFirst || !char.IsWhiteSpace(info.character);
+
+            var baseline = float.MaxValue;
+            for (int i = first; i <= last; ++i)
+            {
+                ref readonly var info = ref textInfo.characterInfo[i];
+                if (Counts(info, i == first))
+                {
+                    baseline = Mathf.Min(baseline, info.baseLine);
+                }
+            }
+
+            // ベースラインが持ち上がっていない文字を本文とみなす
+            var tolerance = Text.fontSize * 0.01f;
+            var lineAscender = float.MinValue;
+            var bodyAscender = float.MinValue;
+            for (int i = first; i <= last; ++i)
+            {
+                ref readonly var info = ref textInfo.characterInfo[i];
+                if (!Counts(info, i == first))
+                {
+                    continue;
+                }
+                lineAscender = Mathf.Max(lineAscender, info.ascender);
+                if (info.baseLine <= baseline + tolerance)
+                {
+                    bodyAscender = Mathf.Max(bodyAscender, info.ascender);
+                }
+            }
+
+            var delta = (lineAscender - bodyAscender) * ratio;
+            if (bodyAscender == float.MinValue || delta <= 0f)
+            {
+                return;
+            }
+
+            for (int i = 0; i < textInfo.materialCount && i < textInfo.meshInfo.Length; ++i)
+            {
+                var vertices = textInfo.meshInfo[i].vertices;
+                if (vertices == null)
+                {
+                    continue;
+                }
+                var count = Mathf.Min(textInfo.meshInfo[i].vertexCount, vertices.Length);
+                for (int j = 0; j < count; ++j)
+                {
+                    vertices[j].y += delta;
+                }
+            }
+        }
+
         public void Set(in StringWithRuby stringWithRuby)
         {
             Text.text = ToTaggedText(stringWithRuby, Text, rubyScale, rubyOffset, justify, lineHeight);
