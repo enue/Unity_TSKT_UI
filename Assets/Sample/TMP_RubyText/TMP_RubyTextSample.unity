@@ -190,6 +190,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &33413914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,7 +279,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -501,6 +503,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &64878377
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -588,7 +592,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -951,6 +955,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 0
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &178259683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1038,7 +1044,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1123,6 +1129,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &204947639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1210,7 +1218,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1434,6 +1442,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &292639665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1521,7 +1531,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2309,6 +2319,8 @@ MonoBehaviour:
   rubyScale: 0.35
   rubyOffset: 1.05
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1063424172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2396,7 +2408,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2519,6 +2531,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1166141265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2606,7 +2620,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2969,6 +2983,8 @@ MonoBehaviour:
   rubyScale: 0.7
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1323535439
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3056,7 +3072,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3318,6 +3334,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1411366918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3405,7 +3423,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3768,6 +3786,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1512317422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3855,7 +3875,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3978,6 +3998,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1545383414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4065,7 +4087,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -4150,6 +4172,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1586913205
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4237,7 +4261,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -4322,6 +4346,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1623283841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4409,7 +4435,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -4671,6 +4697,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &1814110712
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4758,7 +4786,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -5475,6 +5503,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &2094283218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5562,7 +5592,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -5819,6 +5849,8 @@ MonoBehaviour:
   rubyScale: 0.5
   rubyOffset: 1
   justify: 1
+  lineHeight: 100
+  keepBodyPosition: 1
 --- !u!114 &2132773302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5906,7 +5938,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 14, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

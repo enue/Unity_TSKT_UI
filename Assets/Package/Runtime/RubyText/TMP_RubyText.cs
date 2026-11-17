@@ -27,7 +27,7 @@ namespace TSKT
         float rubyOffset = 1f;
 
         [SerializeField]
-        [Tooltip("ルビが本文より短いとき、本文の幅いっぱいに字間を広げる")]
+        [Tooltip("ルビが本文より短いとき、字間を広げて本文の幅に均等に割り付ける（両端の空きは字間の半分）")]
         bool justify = true;
 
         [SerializeField]
@@ -41,7 +41,17 @@ namespace TSKT
 
         void OnEnable()
         {
-            Text.OnPreRenderText += OnPreRenderText;
+            Subscribe();
+        }
+
+        // エディタの非再生時はOnEnableが呼ばれないので、Setからも登録する
+        void Subscribe()
+        {
+            Text.OnPreRenderText -= OnPreRenderText;
+            if (enabled)
+            {
+                Text.OnPreRenderText += OnPreRenderText;
+            }
         }
 
         void OnDisable()
@@ -130,6 +140,7 @@ namespace TSKT
 
         public void Set(in StringWithRuby stringWithRuby)
         {
+            Subscribe();
             Text.text = ToTaggedText(stringWithRuby, Text, rubyScale, rubyOffset, justify, lineHeight);
         }
 
@@ -211,8 +222,9 @@ namespace TSKT
             var gap = 0f;
             if (justify && rubyCount > 1 && rubyWidth < bodyWidth)
             {
-                rubyStart = 0f;
-                gap = (bodyWidth - rubyWidth) / (rubyCount - 1);
+                // JIS X 4051の1:2:1。両端の空きを、ルビの字間の半分にする
+                gap = (bodyWidth - rubyWidth) / rubyCount;
+                rubyStart = gap / 2f;
             }
             else
             {
