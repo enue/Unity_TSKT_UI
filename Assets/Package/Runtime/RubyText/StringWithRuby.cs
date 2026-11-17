@@ -62,7 +62,8 @@ namespace TSKT
                 }
                 if (endIndex < separatorIndex)
                 {
-                    bodyText.Append(text[currentIndex..beginIndex]);
+                    // ルビ記法ではない'{'なので本文に残す
+                    bodyText.Append(text[currentIndex..(beginIndex + 1)]);
                     currentIndex = beginIndex + 1;
                     continue;
                 }
@@ -577,7 +578,9 @@ namespace TSKT
                         var tag = tags[i];
                         if (tag.right == null)
                         {
-                            builder.Add((tag.leftIndex, tag.left, subSort: int.MaxValue));
+                            // 単独の閉じタグは、同じ位置の開始タグより前に置く
+                            var closing = tag.left.StartsWith("</", StringComparison.Ordinal);
+                            builder.Add((tag.leftIndex, tag.left, subSort: closing ? i : int.MaxValue));
                         }
                         else if (tag.rightIndex == tag.leftIndex)
                         {
@@ -679,7 +682,6 @@ namespace TSKT
                     }
 
                     position = right;
-                    tagRanges.Add(new RangeInt(left, right + 1 - left));
                     var tagString = body[left..(right + 1)];
 
                     ReadOnlySpan<char> head;
@@ -695,6 +697,12 @@ namespace TSKT
                         }
                         head = head[1..].Trim(" >");
                     }
+                    if (head.IsEmpty)
+                    {
+                        // "<>"のように中身がないものはタグではない
+                        continue;
+                    }
+                    tagRanges.Add(new RangeInt(left, right + 1 - left));
                     ReadOnlySpan<char> tagName;
                     bool closingTag;
                     if (head[0] == '/')
@@ -722,9 +730,8 @@ namespace TSKT
             }
 
             ReadOnlySpan<Tag> pairTags;
-            if (tagPairCount > 0)
             {
-                var builder = new ArrayBufferWriter<Tag>(tagPairCount);
+                var builder = new ArrayBufferWriter<Tag>(tagElements.Count);
                 var positionOffset = 0;
                 var dict = new Dictionary<string, Stack<(string tagValue, int position)>>();
                 for (int i = 0; i < tagElements.Count; ++i)
@@ -734,14 +741,21 @@ namespace TSKT
                     positionOffset += tagRanges[i].length;
                     if (tag.closing)
                     {
-                        dict.TryGetValue(tag.name, out var stack);
-                        var left = stack.Pop();
+                        if (dict.TryGetValue(tag.name, out var stack) && stack.Count > 0)
+                        {
+                            var left = stack.Pop();
 
-                        builder.Add(new Tag(
-                            left.position,
-                            left.tagValue,
-                            position,
-                            tag.value));
+                            builder.Add(new Tag(
+                                left.position,
+                                left.tagValue,
+                                position,
+                                tag.value));
+                        }
+                        else
+                        {
+                            // 対応する開始タグがない閉じタグは単独で登録して原文のまま残す
+                            builder.Add(new Tag(position, tag.value, position, null));
+                        }
                     }
                     else
                     {
@@ -766,10 +780,6 @@ namespace TSKT
                 }
 
                 pairTags = builder.WrittenSpan;
-            }
-            else
-            {
-                pairTags = default;
             }
 
             // bodyからtag文字列を削除

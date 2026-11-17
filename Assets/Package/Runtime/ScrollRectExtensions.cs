@@ -63,7 +63,7 @@ namespace TSKT
             }
             if (itemRect.xMin < viewportRect.xMin)
             {
-                result = (itemRect.xMin - contentRect.xMin) / (contentRect.height - viewportRect.height);
+                result = (itemRect.xMin - contentRect.xMin) / (contentRect.width - viewportRect.width);
                 result = Mathf.Clamp01(result);
                 return true;
             }

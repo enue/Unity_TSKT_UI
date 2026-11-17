@@ -349,7 +349,7 @@ namespace TSKT.HyphenationJpns
 
         public static readonly Regex RITCH_TEXT_REPLACE = new Regex(
             "(\\<color=.*?\\>|</color>|" +
-            "\\<size=.n\\>|</size>|" +
+            "\\<size=.*?\\>|</size>|" +
             "<b>|</b>|" +
             "<i>|</i>)");
 

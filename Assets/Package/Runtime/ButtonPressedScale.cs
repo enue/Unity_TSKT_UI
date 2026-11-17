@@ -81,7 +81,10 @@ namespace TSKT
 
         void OnDisable()
         {
+            // 非アクティブ中はOnPointerUp/Exitが来ないので状態をすべて戻す
+            pressed = false;
             hovered = false;
+            toScale = Vector3.one;
             tween?.Halt();
             tween = null;
             Target.transform.localScale = Vector3.one;

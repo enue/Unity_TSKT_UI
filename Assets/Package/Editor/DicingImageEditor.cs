@@ -16,14 +16,19 @@ namespace TSKT
                 var image = target as DicingImage;
                 var sprite = image.Sprite;
                 sprite.AutoCorrect();
-                image.Sprite = sprite;
+                Undo.RecordObject(image, "Auto Correct");
+                image.SetSprite(sprite, forceRebuild: true);
+                EditorUtility.SetDirty(image);
             }
             if (GUILayout.Button("Auto Correct Size and Positions"))
             {
                 var image = target as DicingImage;
                 var sprite = image.Sprite;
                 sprite.AutoCorrectSizeAndPositions();
-                image.Sprite = sprite;
+                // spritesの参照が変わらないのでforceRebuildしないと反映されない
+                Undo.RecordObject(image, "Auto Correct Size and Positions");
+                image.SetSprite(sprite, forceRebuild: true);
+                EditorUtility.SetDirty(image);
             }
             if (GUILayout.Button("Rebuild"))
             {

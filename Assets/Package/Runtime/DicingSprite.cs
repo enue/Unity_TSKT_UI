@@ -167,6 +167,7 @@ namespace TSKT
             {
                 size = default;
                 spriteRects = System.Array.Empty<Rect>();
+                return;
             }
 
             var w = sprites.Max(_ => _.rect.xMax);

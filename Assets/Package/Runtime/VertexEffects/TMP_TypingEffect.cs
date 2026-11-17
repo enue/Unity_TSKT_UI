@@ -17,7 +17,7 @@ namespace TSKT
             for (int i = 0; i < vertexHelper.CharacterCount; ++i)
             {
                 var visible = i < visibleQuadCount;
-                if (!visible)
+                if (!visible && vertexHelper.IsVisible(i))
                 {
                     var colors = vertexHelper.GetColor(i);
                     for (int j = 0; j < colors.Length; ++j)

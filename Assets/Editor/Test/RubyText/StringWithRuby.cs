@@ -37,6 +37,7 @@ namespace TSKT.Tests
         [TestCase("abc{def}g:hi", "abc{def}g:hi", "")]
         [TestCase("abc{defghi", "abc{defghi", "")]
         [TestCase("abc{de{f:g}hi", "abcde{fhi", "g")]
+        [TestCase("{abc}と{d:e}", "{abc}とd", "e")]
         public void Parse2(string source, string body, string ruby)
         {
             var text = TSKT.RichTextBuilder.Parse(source).ToStringWithRuby();
@@ -251,6 +252,10 @@ namespace TSKT.Tests
         [TestCase("<b><a></a></b>", "", "")]
         [TestCase("<b></b><a></a>", "", "")]
         [TestCase("<a>hoge</a><a>fuga</a>", "hogefuga", "<a>hoge</a><a>fuga</a>")]
+        [TestCase("hoge</b>", "hoge", "hoge</b>")]
+        [TestCase("a</b><i>x</i>", "ax", "a</b><i>x</i>")]
+        [TestCase("a<>b", "a<>b", "a<>b")]
+        [TestCase("a<>b<i>x</i>", "a<>bx", "a<>b<i>x</i>")]
         public void ToStringWithRuby(string originalString, string body, string taggedBody)
         {
             var text = TSKT.RichTextBuilder.Parse(originalString);

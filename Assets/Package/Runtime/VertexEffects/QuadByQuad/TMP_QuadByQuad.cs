@@ -52,6 +52,10 @@ namespace TSKT
 
             for (int i = 0; i < vertexHelper.CharacterCount; ++i)
             {
+                if (!vertexHelper.IsVisible(i))
+                {
+                    continue;
+                }
                 var normalizedTime = QuadByQuad.GetNormalizedTime(
                     quadIndex: i,
                     quadCount: vertexHelper.CharacterCount,

@@ -31,6 +31,11 @@ namespace TSKT
         }
         public int CharacterCount => text.textInfo.characterCount;
 
+        /// <summary>
+        /// 空白などの不可視文字は頂点を持たず、vertexIndexが無効なのでGetVertex / GetColorを呼んではいけない
+        /// </summary>
+        public bool IsVisible(int characterIndex) => text.textInfo.characterInfo[characterIndex].isVisible;
+
         public TMP_VertexHelper(TMP_Text text)
         {
             this.text = text;

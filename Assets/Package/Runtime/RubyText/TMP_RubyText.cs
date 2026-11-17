@@ -146,6 +146,10 @@ namespace TSKT
                             continue;
                         }
                     }
+                    if (!rubyVertices.IsVisible(i + rubyIndex))
+                    {
+                        continue;
+                    }
 
                     var quadWidth = rubyVertices.GetCharacterBounds(i + rubyIndex).size.x;
                     rubyWidth += quadWidth;
@@ -192,6 +196,10 @@ namespace TSKT
                     {
                         break;
                     }
+                }
+                if (!rubyVertices.IsVisible(rubyIndex + i))
+                {
+                    continue;
                 }
 
                 var toPosition = new Vector2(position, bodyBounds.yMax + positionY);
