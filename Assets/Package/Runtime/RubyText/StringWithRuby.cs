@@ -135,6 +135,97 @@ namespace TSKT
             }
             return result.ToString();
         }
+        /// <summary>
+        /// 1文字ずつ表示するときの表示文字数の列を返す。
+        /// 本文とルビを同じテキストに表示している場合（TMP_RubyText）に、TMP_Text.maxVisibleCharactersへ順に渡す。
+        /// 各要素は「表示する本文の文字数 + そこまでに本文が出そろったルビの文字数」で、タグは数えない。
+        /// </summary>
+        /// <param name="skipCharacters">この文字で終わる段階は飛ばす（次の文字と同時に表示する）</param>
+        public readonly int[] GetTypingSequence(string skipCharacters = "\n")
+        {
+            if (string.IsNullOrEmpty(body))
+            {
+                return System.Array.Empty<int>();
+            }
+
+            var text = body.AsSpan();
+            var result = new List<int>(text.Length);
+            var visibleLength = 0;
+            var count = 0;
+            var skipped = false;
+            for (int i = 0; i < text.Length;)
+            {
+                var tagLength = GetTagLength(text[i..]);
+                if (tagLength > 0)
+                {
+                    i += tagLength;
+                    continue;
+                }
+
+                var character = text[i];
+                ++visibleLength;
+                ++i;
+
+                // ルビの本文がタグで終わっている場合も、最後の文字が出た時点で出そろったとみなす
+                var reached = i;
+                while (reached < text.Length)
+                {
+                    var length = GetTagLength(text[reached..]);
+                    if (length == 0)
+                    {
+                        break;
+                    }
+                    reached += length;
+                }
+
+                count = visibleLength;
+                if (rubies != null)
+                {
+                    foreach (var it in rubies)
+                    {
+                        if (it.bodyStringRange.end <= reached)
+                        {
+                            count += it.textLength;
+                        }
+                    }
+                }
+
+                skipped = skipCharacters.Contains(character);
+                if (!skipped)
+                {
+                    result.Add(count);
+                }
+            }
+            // 最後の文字は必ず含める
+            if (skipped)
+            {
+                result.Add(count);
+            }
+            return result.ToArray();
+        }
+
+        /// <summary>
+        /// 先頭がタグならその長さを返す。タグの判定はRichTextBuilder.Parseと同じで、"&lt;&gt;"のように中身がないものはタグとみなさない。
+        /// </summary>
+        static int GetTagLength(ReadOnlySpan<char> text)
+        {
+            if (text.Length == 0 || text[0] != '<')
+            {
+                return 0;
+            }
+            var right = text.IndexOf('>');
+            if (right < 0)
+            {
+                return 0;
+            }
+            var head = text[1..right];
+            var equal = head.IndexOf('=');
+            if (equal >= 0)
+            {
+                head = head[..equal];
+            }
+            return head.Trim(" >").IsEmpty ? 0 : right + 1;
+        }
     }
 
     public readonly ref struct RichTextBuilder
@@ -860,29 +951,6 @@ namespace TSKT
                 // 削除範囲より後ろにある
                 return new RangeInt(original.start - removeRange.length, original.length);
             }
-        }
-
-        public TypingText[] GetTypingSequence(string skipCharacters = "\n")
-        {
-            if (body.Length == 0)
-            {
-                return System.Array.Empty<TypingText>();
-            }
-
-            var end = ToStringWithRuby();
-            var result = new List<TypingText>();
-            for (int i = 0; i < body.Length - 1; ++i)
-            {
-                if (!skipCharacters.Contains(body[i]))
-                {
-                    var substring = Substring(0, i + 1).ToStringWithRuby();
-                    result.Add(new TypingText(
-                        i + 1,
-                        new StringWithRuby(end.body, substring.rubies, substring.joinedRubyText)));
-                }
-            }
-            result.Add(new TypingText(end.body.Length, end));
-            return result.ToArray();
         }
     }
 }

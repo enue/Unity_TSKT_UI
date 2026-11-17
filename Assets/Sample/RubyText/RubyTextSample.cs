@@ -68,18 +68,33 @@ namespace TSKT
             body!.text = wrapped.body;
         }
 
+        // 本文とルビが別のTextなので、1文字増やすごとに両方の文字列を作り直す
+        StringWithRuby[] GetTypingTexts(string text)
+        {
+            var wrapped = RichTextBuilder.Parse(text)
+                .WrapWithHyphenation(body!, new HyphenationJpns.Ruler());
+
+            var result = new List<StringWithRuby>();
+            for (int i = 1; i <= wrapped.body.Length; ++i)
+            {
+                if (wrapped.body[i - 1] != '\n')
+                {
+                    result.Add(wrapped.Substring(0, i).ToStringWithRuby());
+                }
+            }
+            return result.ToArray();
+        }
+
         IEnumerator UpdateTypingMessage(string text)
         {
-            var richTexts = RichTextBuilder.Parse(text)
-                .WrapWithHyphenation(body!, new HyphenationJpns.Ruler())
-                .GetTypingSequence();
+            var richTexts = GetTypingTexts(text);
 
             while (true)
             {
                 foreach (var it in richTexts)
                 {
-                    rubyForTypingMessage!.Set(it.Text);
-                    bodyForTypingMessage!.text = it.Text.body;
+                    rubyForTypingMessage!.Set(it);
+                    bodyForTypingMessage!.text = it.body;
 
                     yield return new WaitForSeconds(0.05f);
                 }
@@ -125,15 +140,16 @@ namespace TSKT
         // レイアウトは変わらないので、途中で文字の位置が動くことはない。
         IEnumerator UpdateTypingMessageTMP(string message)
         {
-            var richTexts = RichTextBuilder.Parse(message).GetTypingSequence();
-            textMeshProRubyForTypingMessage!.Set(richTexts[^1].Text);
+            var stringWithRuby = RichTextBuilder.Parse(message).ToStringWithRuby();
+            textMeshProRubyForTypingMessage!.Set(stringWithRuby);
+            var sequence = stringWithRuby.GetTypingSequence();
             var text = textMeshProRubyForTypingMessage.Text;
 
             while (true)
             {
-                foreach (var it in richTexts)
+                foreach (var it in sequence)
                 {
-                    text.maxVisibleCharacters = it.VisibleLengthWithRuby;
+                    text.maxVisibleCharacters = it;
                     yield return new WaitForSeconds(0.05f);
                 }
                 yield return new WaitForSeconds(1f);

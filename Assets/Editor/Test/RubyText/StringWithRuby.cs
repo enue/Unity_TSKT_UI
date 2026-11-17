@@ -265,6 +265,27 @@ namespace TSKT.Tests
         }
 
         [Test]
+        // 本文「吾輩は猫だ」。ルビは本文が出そろった段階で加算される
+        [TestCase("{吾輩:わがはい}は{猫:ねこ}だ", new[] { 1, 6, 7, 10, 11 })]
+        // タグは文字数に数えない
+        [TestCase("<color=red>ab</color>c", new[] { 1, 2, 3 })]
+        // 改行で終わる段階は飛ばす。最後の文字は必ず含める
+        [TestCase("a\nb", new[] { 1, 3 })]
+        [TestCase("a\n", new[] { 1, 2 })]
+        [TestCase("", new int[0])]
+        // ルビの本文がタグで終わっていても、最後の文字と同時にルビが出る
+        [TestCase("{<b>漢字</b>:かんじ}です", new[] { 1, 5, 6, 7 })]
+        // タグが本文とルビの境界をまたぐ
+        [TestCase("{見<color=red>当:けんとう}がつか</color>ぬ", new[] { 1, 6, 7, 8, 9, 10 })]
+        // 中身のない"<>"はタグではなく文字として数える
+        [TestCase("a<>b", new[] { 1, 2, 3, 4 })]
+        public void GetTypingSequence(string message, int[] expected)
+        {
+            var sequence = RichTextBuilder.Parse(message).ToStringWithRuby().GetTypingSequence();
+            Assert.AreEqual(expected, sequence);
+        }
+
+        [Test]
         public void ParseOption()
         {
             var message = "{hoge:fuga}<color=red>piyo</color>";

@@ -61,18 +61,19 @@ namespace TSKT
         IEnumerator Typing()
         {
             // 全文をルビ込みで一度だけ設定し、表示文字数だけを進める
-            var sequence = RichTextBuilder.Parse(message).GetTypingSequence();
+            var stringWithRuby = RichTextBuilder.Parse(message).ToStringWithRuby();
+            Ruby.Set(stringWithRuby);
+            var sequence = stringWithRuby.GetTypingSequence();
             if (sequence.Length == 0)
             {
                 yield break;
             }
-            Ruby.Set(sequence[^1].Text);
 
             while (true)
             {
                 foreach (var it in sequence)
                 {
-                    Ruby.Text.maxVisibleCharacters = it.VisibleLengthWithRuby;
+                    Ruby.Text.maxVisibleCharacters = it;
                     yield return new WaitForSeconds(typingInterval);
                 }
                 yield return new WaitForSeconds(loopInterval);
