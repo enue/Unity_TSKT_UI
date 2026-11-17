@@ -1,248 +1,254 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿#nullable enable
+using System;
+using System.Globalization;
+using System.Text;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using System.Linq;
-#nullable enable
 
 namespace TSKT
 {
-    [RequireComponent(typeof(TMPro.TMP_Text))]
-    public class TMP_RubyText : TMP_BaseMeshEffect
+    /// <summary>
+    /// ルビを本文と同じTMP_Textにリッチテキストタグで埋め込んで表示する。
+    /// 改行や自動サイズ調整はTextMeshProに任せられる。
+    /// </summary>
+    [RequireComponent(typeof(TMP_Text))]
+    public class TMP_RubyText : MonoBehaviour
     {
-        public const int VertexCountPerQuad = 4;
+        /// <summary>文字列の幅をem単位（フォントサイズを1とした値）で返す</summary>
+        public delegate float MeasureWidth(ReadOnlySpan<char> text);
 
-        TMPro.TMP_Text? text;
-        public TMPro.TMP_Text Text => text ? text! : (text = GetComponent<TMPro.TMP_Text>());
+        TMP_Text? text;
+        TMP_Text OwnText => text ? text! : (text = GetComponent<TMP_Text>());
 
-        [SerializeField]
-        TMPro.TMP_Text? bodyText = default;
-
-        [SerializeField]
-        float positionY = 8f;
+        /// <summary>本文とルビを表示するテキスト</summary>
+        public TMP_Text Text => bodyText ? bodyText! : OwnText;
 
         [SerializeField]
-        float boundsWidthDelta = 0f;
+        [Tooltip("未設定なら同じGameObjectのTMP_Textに表示する。ルビ用オブジェクトを分けていた旧構成のシーンでは、ここで参照している本文側にまとめて表示する")]
+        TMP_Text? bodyText = default;
 
-        StringWithRuby stringWithRuby;
+        [SerializeField]
+        [Tooltip("本文に対するルビの大きさ")]
+        [Range(0.1f, 1f)]
+        float rubyScale = 0.5f;
+
+        [SerializeField]
+        [Tooltip("本文のベースラインからルビのベースラインまでの高さ（em）")]
+        float rubyOffset = 1f;
+
+        [SerializeField]
+        [Tooltip("ルビが本文より短いとき、本文の幅いっぱいに字間を広げる")]
+        bool justify = true;
 
         public void Set(in StringWithRuby stringWithRuby, bool updateMesh = false)
         {
-            Text.text = stringWithRuby.joinedRubyText;
-            this.stringWithRuby = stringWithRuby;
+            var target = Text;
+            target.text = ToTaggedText(stringWithRuby, target, rubyScale, rubyOffset, justify);
+
+            if (bodyText && OwnText != bodyText)
+            {
+                // 旧構成のルビ用テキストは使わない
+                OwnText.text = string.Empty;
+            }
 
             if (updateMesh)
             {
-                Text.ForceMeshUpdate();
-                Modifier.Refresh();
+                target.ForceMeshUpdate();
             }
         }
 
-        public override void Modify(TMP_VertexHelper vertexHelper)
+        public static string ToTaggedText(in StringWithRuby source, TMP_Text text,
+            float rubyScale = 0.5f, float rubyOffset = 1f, bool justify = true)
         {
-            if (!isActiveAndEnabled)
+            // 字間はsizeタグに関係なく、本来のフォントサイズの1/100em単位で1文字ごとに足される
+            var spacing = text.characterSpacing;
+            var font = text.font;
+            if (font)
             {
-                return;
-            }
-            if (stringWithRuby.rubies == null
-                || stringWithRuby.rubies.Length == 0)
-            {
-                Text.text = null;
-                return;
-            }
-
-            if (!TryGetBodySourceTextPositions(out var bodySourceTextPositions))
-            {
-                Text.text = null;
-                return;
-            }
-
-            foreach (var ruby in stringWithRuby.rubies)
-            {
-                // 幅がない文字はおそらく制御文字やタグなので撥ねる
-                Span<(float left, float right, float y)> bodyCharactersForRuby = stackalloc (float left, float right, float y)[ruby.bodyStringRange.length];
+                spacing += font.normalSpacingOffset;
+                if ((text.fontStyle & FontStyles.Bold) != 0)
                 {
-                    int index = 0;
-                    foreach (var it in bodySourceTextPositions.AsSpan(ruby.bodyStringRange.start, ruby.bodyStringRange.length))
-                    {
-                        if (it.left != it.right)
-                        {
-                            bodyCharactersForRuby[index] = it;
-                            ++index;
-                        }
-                    }
-                    bodyCharactersForRuby = bodyCharactersForRuby[..index];
+                    spacing += font.boldSpacing;
                 }
+            }
+            return ToTaggedText(source, _ => Measure(text, _), rubyScale, rubyOffset, justify, spacing * 0.01f);
+        }
 
-                if (bodyCharactersForRuby.Length == 0)
+        /// <param name="measure">字間を含まない、グリフの送り幅の合計（em）を返す</param>
+        /// <param name="characterSpacing">1文字ごとに足される字間（em）。ルビにも縮小されずに同じ量が足される</param>
+        public static string ToTaggedText(in StringWithRuby source, MeasureWidth measure,
+            float rubyScale = 0.5f, float rubyOffset = 1f, bool justify = true, float characterSpacing = 0f)
+        {
+            if (source.rubies == null || source.rubies.Length == 0)
+            {
+                return source.body ?? string.Empty;
+            }
+
+            var rubies = (Ruby[])source.rubies.Clone();
+            Array.Sort(rubies, static (a, b) => a.bodyStringRange.start.CompareTo(b.bodyStringRange.start));
+
+            var body = source.body.AsSpan();
+            var builder = new StringBuilder(source.body.Length + source.joinedRubyText.Length + rubies.Length * 96);
+            Span<char> buffer = body.Length <= 512 ? stackalloc char[body.Length] : new char[body.Length];
+            var position = 0;
+            foreach (var it in rubies)
+            {
+                var range = it.bodyStringRange;
+                if (range.length <= 0
+                    || it.textLength <= 0
+                    || range.start < position
+                    || range.end > body.Length)
                 {
                     continue;
                 }
+                builder.Append(body[position..range.start]);
+                position = range.end;
 
-                // 改行を挟む場合はルビを分割
-                var newLine = new List<int>() { 0 };
-                for (int i = 1; i < bodyCharactersForRuby.Length; ++i)
-                {
-                    var index = i;
-                    var prevIndex = i - 1;
-                    if (bodyCharactersForRuby[index].left < bodyCharactersForRuby[prevIndex].left)
-                    {
-                        newLine.Add(i);
-                    }
-                }
-                var splitRubyLength = ruby.textLength / newLine.Count;
-                for (int i = 0; i < newLine.Count; ++i)
-                {
-                    var characterIndex = newLine[i];
-                    var characterCount = (i == newLine.Count - 1)
-                        ? (bodyCharactersForRuby.Length - newLine[i])
-                        : newLine[i + 1] - newLine[i];
+                var rubyBody = body.Slice(range.start, range.length);
+                var ruby = source.joinedRubyText.AsSpan(it.textPosition, it.textLength);
 
-                    if (bodyCharactersForRuby.Length < (characterIndex + characterCount))
-                    {
-                        continue;
-                    }
+                var plainBody = RemoveTags(rubyBody, buffer);
+                var rubyCount = CountTextElements(ruby);
+                var bodyWidth = measure(plainBody) + characterSpacing * CountTextElements(plainBody);
+                var rubyWidth = measure(ruby) * rubyScale + characterSpacing * rubyCount;
 
-                    int currentRubyLength;
-                    if (i == newLine.Count - 1)
-                    {
-                        currentRubyLength = splitRubyLength + ruby.textLength % newLine.Count;
-                    }
-                    else
-                    {
-                        currentRubyLength = splitRubyLength;
-                    }
-
-                    var bodyBounds = RubyText.GetBounds(bodyCharactersForRuby.Slice(characterIndex, characterCount));
-                    bodyBounds.xMin -= boundsWidthDelta;
-                    bodyBounds.xMax += boundsWidthDelta;
-
-                    var rubyIndex = ruby.textPosition + splitRubyLength * i;
-
-                    ModifyRubyPosition(vertexHelper, rubyIndex, currentRubyLength, bodyBounds);
-                }
+                AppendRuby(builder, rubyBody, ruby, bodyWidth, rubyWidth, rubyCount,
+                    rubyScale, rubyOffset, justify);
             }
+            builder.Append(body[position..]);
+            return builder.ToString();
         }
 
-        void ModifyRubyPosition(TMP_VertexHelper rubyVertices,
-            int rubyIndex, int rubyLength,
-            (float xMin, float xMax, float yMax) bodyBounds)
+        /// <summary>
+        /// 本文、ルビの順に並べ、spaceタグでカーソルを戻してルビを本文の上に重ねる。
+        /// ブロック全体の幅は本文とルビの広いほうになる。
+        /// </summary>
+        static void AppendRuby(StringBuilder builder, ReadOnlySpan<char> body, ReadOnlySpan<char> ruby,
+            float bodyWidth, float rubyWidth, int rubyCount,
+            float rubyScale, float rubyOffset, bool justify)
         {
-            var characterCount = rubyVertices.CharacterCount;
+            var blockWidth = Mathf.Max(bodyWidth, rubyWidth);
+            // ルビのほうが長ければ本文を中央に寄せる
+            var bodyStart = (blockWidth - bodyWidth) / 2f;
 
-            float rubyBoundsLeft;
-            float advance;
+            float rubyStart;
+            var gap = 0f;
+            if (justify && rubyCount > 1 && rubyWidth < bodyWidth)
             {
-                float rubyBoundsRight;
-                var rubyWidth = 0f;
-                var lastQuadWidth = 0f;
-                for (int i = 0; i < rubyLength; ++i)
-                {
-                    {
-                        var requireCount = (rubyIndex + i + 1);
-                        if (requireCount > characterCount)
-                        {
-                            continue;
-                        }
-                    }
-                    if (!rubyVertices.IsVisible(i + rubyIndex))
-                    {
-                        continue;
-                    }
+                rubyStart = 0f;
+                gap = (bodyWidth - rubyWidth) / (rubyCount - 1);
+            }
+            else
+            {
+                rubyStart = (blockWidth - rubyWidth) / 2f;
+            }
+            // 最後の文字の後ろのcspaceは、閉じタグでTextMeshProが取り消す
+            var rubyEnd = rubyStart + rubyWidth + gap * (rubyCount - 1);
 
-                    var quadWidth = rubyVertices.GetCharacterBounds(i + rubyIndex).size.x;
-                    rubyWidth += quadWidth;
+            builder.Append("<nobr>");
+            AppendSpace(builder, bodyStart);
+            builder.Append(body);
+            AppendSpace(builder, rubyStart - (bodyStart + bodyWidth));
 
-                    if (i == rubyLength - 1)
-                    {
-                        lastQuadWidth = quadWidth;
-                    }
-                }
-                if (rubyLength == 1)
-                {
-                    var center = (bodyBounds.xMax + bodyBounds.xMin) / 2f;
-                    rubyBoundsLeft = center - rubyWidth / 2f;
-                    rubyBoundsRight = center + rubyWidth / 2f;
-                }
-                else if (rubyWidth > (bodyBounds.xMax - bodyBounds.xMin))
-                {
-                    var center = (bodyBounds.xMax + bodyBounds.xMin) / 2f;
-                    rubyBoundsLeft = center - rubyWidth / 2f;
-                    rubyBoundsRight = center + rubyWidth / 2f;
-                }
-                else
-                {
-                    rubyBoundsLeft = bodyBounds.xMin;
-                    rubyBoundsRight = bodyBounds.xMax;
-                }
-
-                if (rubyWidth - lastQuadWidth != 0f)
-                {
-                    advance = (rubyBoundsRight - rubyBoundsLeft - lastQuadWidth) / (rubyWidth - lastQuadWidth);
-                }
-                else
-                {
-                    advance = 0f;
-                }
+            // emは現在のフォントサイズ基準なので、sizeタグより外側で指定する
+            if (gap > 0f)
+            {
+                builder.Append("<cspace=").Append(Format(gap)).Append("em>");
+            }
+            builder.Append("<voffset=").Append(Format(rubyOffset)).Append("em>");
+            builder.Append("<size=").Append(Format(rubyScale * 100f)).Append("%>");
+            builder.Append(ruby);
+            builder.Append("</size></voffset>");
+            if (gap > 0f)
+            {
+                builder.Append("</cspace>");
             }
 
-            var position = rubyBoundsLeft;
-            for (int i = 0; i < rubyLength; ++i)
+            AppendSpace(builder, blockWidth - rubyEnd);
+            builder.Append("</nobr>");
+        }
+
+        static void AppendSpace(StringBuilder builder, float em)
+        {
+            if (Mathf.Abs(em) < 0.001f)
             {
+                return;
+            }
+            builder.Append("<space=").Append(Format(em)).Append("em>");
+        }
+
+        static string Format(float value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+        static ReadOnlySpan<char> RemoveTags(ReadOnlySpan<char> source, Span<char> buffer)
+        {
+            var length = 0;
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] == '<')
                 {
-                    var requireCount = (rubyIndex + i + 1);
-                    if (requireCount > rubyVertices.CharacterCount)
+                    var close = source[i..].IndexOf('>');
+                    if (close >= 0)
                     {
-                        break;
+                        i += close;
+                        continue;
                     }
                 }
-                if (!rubyVertices.IsVisible(rubyIndex + i))
+                buffer[length] = source[i];
+                ++length;
+            }
+            return buffer[..length];
+        }
+
+        static int CountTextElements(ReadOnlySpan<char> value)
+        {
+            var count = 0;
+            foreach (var it in value)
+            {
+                if (!char.IsLowSurrogate(it))
                 {
+                    ++count;
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// グリフの送り幅からem単位の幅を求める。字間は含まない。カーニングとタグによる太字は考慮しない。
+        /// </summary>
+        static float Measure(TMP_Text text, ReadOnlySpan<char> value)
+        {
+            var font = text.font;
+            var width = 0f;
+            for (int i = 0; i < value.Length; ++i)
+            {
+                uint unicode = value[i];
+                if (char.IsHighSurrogate(value[i]) && i + 1 < value.Length && char.IsLowSurrogate(value[i + 1]))
+                {
+                    unicode = (uint)char.ConvertToUtf32(value[i], value[i + 1]);
+                    ++i;
+                }
+
+                TMP_Character? character = null;
+                if (font)
+                {
+                    character = TMP_FontAssetUtilities.GetCharacterFromFontAsset(unicode, font, true, text.fontStyle, text.fontWeight, out _);
+                    if (character == null && TMP_Settings.fallbackFontAssets != null)
+                    {
+                        character = TMP_FontAssetUtilities.GetCharacterFromFontAssets(unicode, font, TMP_Settings.fallbackFontAssets, true, text.fontStyle, text.fontWeight, out _);
+                    }
+                }
+                if (character == null || !character.textAsset)
+                {
+                    // グリフが見つからない文字は全角幅とみなす
+                    width += 1f;
                     continue;
                 }
 
-                var toPosition = new Vector2(position, bodyBounds.yMax + positionY);
-
-                var bounds = rubyVertices.GetCharacterBounds(rubyIndex + i);
-                var fromPosition = new Vector2(bounds.min.x, bounds.center.y);
-                var move = toPosition - fromPosition;
-
-
-                var vertices = rubyVertices.GetVertex(rubyIndex + i);
-                for (int j = 0; j < vertices.Length; ++j)
-                {
-                    vertices[j].x += move.x;
-                    vertices[j].y += move.y;
-                }
-
-                position += bounds.size.x * advance;
+                var face = character.textAsset.faceInfo;
+                width += character.glyph.metrics.horizontalAdvance * character.scale * character.glyph.scale
+                    / face.pointSize * face.scale;
             }
-        }
-
-        bool TryGetBodySourceTextPositions(out (float left, float right, float y)[]? result)
-        {
-            // FIXME : FontSizeをAutoにしているとTextInfoが取得できない（characterCountが0になる）ことがある
-            var textInfo = bodyText!.GetTextInfo(stringWithRuby.body);
-            if (textInfo.characterCount == 0)
-            {
-                result = null;
-                return false;
-            }
-
-            result = new (float left, float right, float y)[stringWithRuby.body.Length];
-            for (int i = 0; i < textInfo.characterCount; ++i)
-            {
-                var it = textInfo.characterInfo[i];
-                if (it.isVisible)
-                {
-                    result[it.index] = (
-                        it.topLeft.x,
-                        it.topRight.x,
-                        it.topLeft.y);
-                }
-            }
-            return true;
+            return width;
         }
     }
 }

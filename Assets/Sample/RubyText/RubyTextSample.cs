@@ -124,27 +124,24 @@ namespace TSKT
 
         void ShowStringWithRubyTMP(string message)
         {
+            // 本文とルビはTMP_RubyTextが同じテキストにまとめて表示する
             var richText = RichTextBuilder.Parse(message).ToStringWithRuby();
-            textMeshProBody!.text = richText.body;
-            textMeshProRuby!.Set(richText, updateMesh: true);
+            textMeshProRuby!.Set(richText);
         }
 
-        // ルビを表示すると改行禁則処理でおかしくなるのでいったんルビ表示は諦める。
-        // たとえば「ほ\nげ。」と行をまたいで表示すると、
-        //「ほ」「ほ\nげ」「ほ\nげ。」　となってほしいが、実際は
-        //「ほ」「ほげ」「ほ\nげ。」　となる。（「げ」の位置が途中で変化してしまう）
-        // これはTMP_RubyText内で呼んでいるTMP_Text.GetTextInfoの副作用による。
+        // 全文をルビ込みで一度だけ設定し、表示文字数だけを進める。
+        // レイアウトは変わらないので、途中で文字の位置が動くことはない。
         IEnumerator UpdateTypingMessageTMP(string message)
         {
             var richTexts = RichTextBuilder.Parse(message).GetTypingSequence();
-            textMeshProBodyForTypingMessage!.text = richTexts[^1].Text.body;
+            textMeshProRubyForTypingMessage!.Set(richTexts[^1].Text);
+            var text = textMeshProRubyForTypingMessage.Text;
 
             while (true)
             {
                 foreach (var it in richTexts)
                 {
-                    textMeshProBodyForTypingMessage.maxVisibleCharacters = it.VisibleBodyLength;
-                    textMeshProRubyForTypingMessage.Set(it.Text, updateMesh: true);
+                    text.maxVisibleCharacters = it.VisibleLengthWithRuby;
                     yield return new WaitForSeconds(0.05f);
                 }
                 yield return new WaitForSeconds(1f);
